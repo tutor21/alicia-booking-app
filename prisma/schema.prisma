@@ -1,0 +1,38 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum BookingStatus {
+  PENDING_PAYMENT
+  PAID
+  PAYMENT_FAILED
+  CANCELLED
+}
+
+model Booking {
+  id                  String        @id @default(uuid())
+  bookingNumber       String        @unique @map("booking_number")
+  tour                String
+  bookingDate         String        @map("booking_date")
+  guests              Int
+  customerName        String        @map("customer_name")
+  customerEmail       String        @map("customer_email")
+  customerPhone       String        @map("customer_phone")
+  specialRequests     String?       @map("special_requests")
+  amount              Float
+  currency            String        @default("PHP")
+  bookingStatus       BookingStatus @default(PENDING_PAYMENT) @map("booking_status")
+  paymentStatus       String        @default("unpaid") @map("payment_status")
+  paymongoCheckoutId  String?       @unique @map("paymongo_checkout_id")
+  paymongoPaymentId   String?       @unique @map("paymongo_payment_id")
+  emailSent           Boolean       @default(false) @map("email_sent")
+  createdAt           DateTime      @default(now()) @map("created_at")
+  updatedAt           DateTime      @updatedAt @map("updated_at")
+
+  @@map("bookings")
+}

@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bohol Adventures | Explore Bohol With Local Guides</title>
+    <meta name="description" content="Discover Bohol with local tour guides. Book tours, adventures and unforgettable experiences in Bohol, Philippines.">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { font-family: Arial, Helvetica, sans-serif; color: #222; line-height: 1.6; background: #fff; }
+        img { width: 100%; display: block; }
+        a { text-decoration: none; color: inherit; }
+        button, input, select { font: inherit; }
+        .container { width: min(1180px, 92%); margin: auto; }
+        .section { padding: 90px 0; }
+        .section-title { text-align: center; margin-bottom: 50px; }
+        .section-title span { display: block; text-transform: uppercase; letter-spacing: 3px; font-size: 13px; font-weight: 700; margin-bottom: 10px; }
+        .section-title h2 { font-size: 42px; line-height: 1.2; margin-bottom: 15px; }
+        .section-title p { max-width: 650px; margin: auto; color: #777; }
+        .btn { display: inline-block; padding: 14px 26px; border-radius: 5px; border: none; cursor: pointer; font-weight: 700; transition: .3s; }
+        .btn-primary { background: #f4a261; color: #fff; }
+        .btn-primary:hover { background: #e58b45; transform: translateY(-2px); }
+        .btn-dark { background: #222; color: #fff; }
+        .btn-dark:hover { background: #000; }
+        .btn-outline { border: 1px solid #ddd; background: #fff; }
+        .btn-outline:hover { background: #f5f5f5; }
+
+        header { position: absolute; top: 0; left: 0; width: 100%; z-index: 1000; padding: 22px 0; color: #fff; }
+        .header-inner { display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 25px; font-weight: 800; letter-spacing: -1px; }
+        .logo span { color: #f4a261; }
+        nav { display: flex; gap: 28px; align-items: center; }
+        nav a { font-size: 14px; font-weight: 600; }
+        nav a:hover { color: #f4a261; }
+        .mobile-menu { display: none; font-size: 26px; cursor: pointer; }
+
+        .hero { min-height: 720px; background: linear-gradient(rgba(0,0,0,.45), rgba(0,0,0,.40)), url("https://images.unsplash.com/photo-1530789253388-582c481c54b0?auto=format&fit=crop&w=2000&q=85") center/cover; display: flex; align-items: center; position: relative; }
+        .hero-content { color: #fff; max-width: 720px; padding-top: 50px; }
+        .hero-content span { text-transform: uppercase; letter-spacing: 4px; font-size: 14px; font-weight: 700; }
+        .hero-content h1 { font-size: clamp(45px, 7vw, 78px); line-height: 1.05; margin: 15px 0; }
+        .hero-content p { font-size: 19px; max-width: 620px; margin-bottom: 30px; }
+        .hero-buttons { display: flex; gap: 12px; flex-wrap: wrap; }
+
+        .booking-wrapper { margin-top: -55px; position: relative; z-index: 10; }
+        .booking-box { background: #fff; border-radius: 8px; box-shadow: 0 12px 45px rgba(0,0,0,.14); padding: 30px; }
+        .booking-box h3 { margin-bottom: 20px; font-size: 23px; }
+        .booking-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap: 12px; }
+        .field label { display: block; font-size: 12px; font-weight: 700; margin-bottom: 6px; color: #666; }
+        .field input, .field select { width: 100%; height: 48px; border: 1px solid #ddd; border-radius: 5px; padding: 0 12px; background: #fff; }
+
+        .tour-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; }
+        .tour-card { background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 5px 25px rgba(0,0,0,.08); transition: .3s; }
+        .tour-card:hover { transform: translateY(-6px); box-shadow: 0 12px 35px rgba(0,0,0,.12); }
+        .tour-image { height: 240px; overflow: hidden; }
+        .tour-image img { height: 100%; object-fit: cover; transition: .5s; }
+        .tour-card:hover .tour-image img { transform: scale(1.06); }
+        .tour-content { padding: 23px; }
+        .tour-meta { display: flex; justify-content: space-between; color: #888; font-size: 13px; margin-bottom: 10px; }
+        .tour-content h3 { font-size: 22px; margin-bottom: 10px; }
+        .tour-content p { color: #777; margin-bottom: 18px; }
+        .tour-bottom { display: flex; justify-content: space-between; align-items: center; }
+        .price { font-size: 20px; font-weight: 800; }
+        .price small { font-size: 12px; color: #888; font-weight: normal; }
+
+        .destinations { background: #f7f7f7; }
+        .destination-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+        .destination-card { height: 330px; border-radius: 7px; overflow: hidden; position: relative; color: #fff; }
+        .destination-card img { height: 100%; object-fit: cover; transition: .5s; }
+        .destination-card:hover img { transform: scale(1.07); }
+        .destination-overlay { position: absolute; inset: 0; background: linear-gradient(transparent 40%, rgba(0,0,0,.75)); display: flex; flex-direction: column; justify-content: flex-end; padding: 22px; }
+        .destination-overlay h3 { font-size: 25px; }
+
+        .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
+        .about-image { position: relative; border-radius: 8px; overflow: hidden; }
+        .about-image img { height: 520px; object-fit: cover; }
+        .play-button { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 75px; height: 75px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 25px; cursor: pointer; }
+        .about-content span { text-transform: uppercase; letter-spacing: 3px; font-size: 13px; font-weight: 700; }
+        .about-content h2 { font-size: 43px; line-height: 1.15; margin: 15px 0; }
+        .about-content p { color: #777; margin-bottom: 20px; }
+
+        .guide-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; }
+        .guide-card { border: 1px solid #eee; border-radius: 8px; overflow: hidden; text-align: center; background: #fff; }
+        .guide-image { height: 300px; }
+        .guide-image img { height: 100%; object-fit: cover; }
+        .guide-content { padding: 25px; }
+        .guide-content h3 { font-size: 23px; }
+        .guide-role { color: #f4a261; font-size: 13px; font-weight: 700; margin: 5px 0 10px; }
+        .guide-content p { color: #777; font-size: 14px; margin-bottom: 15px; }
+        .languages { font-size: 13px; color: #777; margin-bottom: 15px; }
+
+        .why-us { background: #f7f7f7; }
+        .features { display: grid; grid-template-columns: repeat(4, 1fr); gap: 25px; }
+        .feature { text-align: center; padding: 25px; }
+        .feature-icon { font-size: 42px; margin-bottom: 15px; }
+        .feature h3 { margin-bottom: 8px; }
+        .feature p { color: #777; font-size: 14px; }
+
+        .testimonial-section { background: linear-gradient(rgba(0,0,0,.65), rgba(0,0,0,.65)), url("https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=2000&q=85") center/cover; color: #fff; }
+        .testimonial { max-width: 800px; margin: auto; text-align: center; }
+        .stars { font-size: 25px; margin-bottom: 20px; }
+        .testimonial blockquote { font-size: 26px; line-height: 1.5; margin-bottom: 25px; }
+        .testimonial-author { font-weight: 700; }
+
+        .things-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+        .thing { border: 1px solid #eee; padding: 25px; border-radius: 8px; text-align: center; transition: .3s; }
+        .thing:hover { box-shadow: 0 10px 25px rgba(0,0,0,.08); transform: translateY(-4px); }
+        .thing-icon { font-size: 40px; margin-bottom: 12px; }
+
+        .gallery-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+        .gallery-item { height: 260px; overflow: hidden; }
+        .gallery-item img { height: 100%; object-fit: cover; transition: .5s; }
+        .gallery-item:hover img { transform: scale(1.08); }
+
+        .blog-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; }
+        .blog-card { border: 1px solid #eee; border-radius: 8px; overflow: hidden; }
+        .blog-image { height: 220px; }
+        .blog-image img { height: 100%; object-fit: cover; }
+        .blog-content { padding: 23px; }
+        .blog-content small { color: #f4a261; font-weight: 700; }
+        .blog-content h3 { margin: 8px 0 10px; font-size: 21px; }
+        .blog-content p { color: #777; font-size: 14px; margin-bottom: 15px; }
+
+        .cta { background: linear-gradient(rgba(0,0,0,.55), rgba(0,0,0,.55)), url("https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=2000&q=85") center/cover; color: #fff; text-align: center; padding: 120px 0; }
+        .cta h2 { font-size: 50px; margin-bottom: 15px; }
+        .cta p { max-width: 650px; margin: 0 auto 25px; font-size: 18px; }
+
+        footer { background: #171717; color: #fff; padding: 70px 0 25px; }
+        .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 50px; }
+        .footer-column h3 { margin-bottom: 20px; }
+        .footer-column p { color: #aaa; }
+        .footer-column ul { list-style: none; }
+        .footer-column li { margin-bottom: 10px; color: #aaa; }
+        .footer-column li:hover { color: #fff; }
+        .copyright { border-top: 1px solid #333; margin-top: 50px; padding-top: 20px; color: #888; text-align: center; font-size: 13px; }
+
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.65); z-index: 2000; align-items: center; justify-content: center; padding: 20px; }
+        .modal.active { display: flex; }
+        .modal-content { background: #fff; width: min(600px, 100%); border-radius: 8px; padding: 35px; position: relative; }
+        .modal-close { position: absolute; right: 20px; top: 15px; font-size: 25px; cursor: pointer; }
+        .modal-content h2 { margin-bottom: 20px; }
+        .modal-form { display: grid; gap: 15px; }
+        .modal-form input, .modal-form select { width: 100%; padding: 13px; border: 1px solid #ddd; border-radius: 5px; }
+
+        @media(max-width: 1000px) {
+            nav { display: none; position: absolute; top: 75px; right: 4%; background: #fff; color: #222; padding: 20px; flex-direction: column; width: 230px; border-radius: 7px; box-shadow: 0 10px 30px rgba(0,0,0,.15); }
+            nav.active { display: flex; }
+            .mobile-menu { display: block; }
+            .booking-grid { grid-template-columns: 1fr 1fr; }
+            .destination-grid, .things-grid, .features { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media(max-width: 700px) {
+            .section { padding: 65px 0; }
+            .section-title h2 { font-size: 32px; }
+            .hero { min-height: 650px; }
+            .hero-content h1 { font-size: 48px; }
+            .booking-grid, .tour-grid, .guide-grid, .about-grid, .blog-grid, .footer-grid { grid-template-columns: 1fr; }
+            .destination-grid, .things-grid, .features { grid-template-columns: 1fr; }
+            .gallery-grid { grid-template-columns: repeat(2, 1fr); }
+            .cta h2 { font-size: 36px; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="container header-inner">
+        <a href="#" class="logo">BOHOL<span>ADVENTURES</span></a>
+        <nav id="navigation">
+            <a href="#home">Home</a>
+            <a href="#tours">Tours</a>
+            <a href="#destinations">Destinations</a>
+            <a href="#guides">Tour Guides</a>
+            <a href="#things">Things To Do</a>
+            <a href="#blog">Travel Guide</a>
+            <a href="#booking" class="btn btn-primary">Book Now</a>
+        </nav>
+        <div class="mobile-menu" onclick="toggleMenu()">☰</div>
+    </div>
+</header>
+
+<section class="hero" id="home">
+    <div class="container">
+        <div class="hero-content">
+            <span>Welcome to Bohol</span>
+            <h1>Discover Bohol With A Local Guide</h1>
+            <p>Explore breathtaking landscapes, hidden destinations and unforgettable experiences with local people who know Bohol best.</p>
+            <div class="hero-buttons">
+                <a href="#tours" class="btn btn-primary">Explore Tours</a>
+                <a href="#guides" class="btn btn-dark">Meet Our Guides</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="booking-wrapper" id="booking">
+    <div class="container">
+        <div class="booking-box">
+            <h3>Find Your Bohol Experience</h3>
+            <div class="booking-grid">
+                <div class="field">
+                    <label>TOUR / EXPERIENCE</label>
+                    <select id="tourSelect">
+                        <option value="">Select a tour</option>
+                        <option value="Bohol Countryside Tour">Bohol Countryside Tour</option>
+                        <option value="Alicia Panoramic Park">Alicia Panoramic Park</option>
+                        <option value="Chocolate Hills Tour">Chocolate Hills Tour</option>
+                        <option value="Island Hopping">Island Hopping</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>DATE</label>
+                    <input type="date" id="bookingDate">
+                </div>
+                <div class="field">
+                    <label>GUESTS</label>
+                    <select id="guestSelect">
+                        <option value="1">1 Guest</option>
+                        <option value="2">2 Guests</option>
+                        <option value="3">3 Guests</option>
+                        <option value="4">4 Guests</option>
+                        <option value="5">5 Guests</option>
+                        <option value="6">6+ Guests</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>GUIDE</label>
+                    <select id="guideSelect">
+                        <option value="Any Guide">Any Guide</option>
+                        <option value="Maria Santos">Maria Santos</option>
+                        <option value="Juan Dela Cruz">Juan Dela Cruz</option>
+                        <option value="Pedro Garcia">Pedro Garcia</option>
+                    </select>
+                </div>
+                <div>
+                    <label>&nbsp;</label>
+                    <button class="btn btn-primary" onclick="searchBooking()">Search</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section" id="tours">
+    <div class="container">
+        <div class="section-title">
+            <span>Popular Experiences</span>
+            <h2>Explore Bohol Tours</h2>
+            <p>Discover the most popular places and experiences around the island.</p>
+        </div>
+        <div class="tour-grid">
+            <article class="tour-card">
+                <div class="tour-image">
+                    <img src="https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=1000&q=80" alt="Bohol Countryside">
+                </div>
+                <div class="tour-content">
+                    <div class="tour-meta">
+                        <span>6 Hours</span>
+                        <span>⭐ 4.9</span>
+                    </div>
+                    <h3>Bohol Countryside Tour</h3>
+                    <p>Experience Chocolate Hills, the countryside and Bohol's famous attractions.</p>
+                    <div class="tour-bottom">
+                        <div class="price">₱2,500 <small>/ group</small></div>
+                        <button class="btn btn-outline" onclick="openBooking('Bohol Countryside Tour')">Book</button>
+                    </div>
+                </div>
+            </article>
+
+            <article class="tour-card">
+                <div class="tour-image">
+                    <img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1000&q=80" alt="Alicia Panoramic Park">
+                </div>
+                <div class="tour-content">
+                    <div class="tour-meta">
+                        <span>2 Hours</span>
+                        <span>⭐ 5.0</span>
+                    </div>
+                    <h3>Alicia Panoramic Park</h3>
+                    <p>Hike through beautiful mountain landscapes and enjoy spectacular panoramic views.</p>
+                    <div class="tour-bottom">
+                        <div class="price">₱500 <small>/ person</small></div>
+                        <button class="btn btn-outline" onclick="openBooking('Alicia Panoramic Park')">Book</button>
+                    </div>
+                </div>
+            </article>
+
+            <article class="tour-card">
+                <div class="tour-image">
+                    <img src="https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1000&q=80" alt="Island Hopping">
+                </div>
+                <div class="tour-content">
+                    <div class="tour-meta">
+                        <span>5 Hours</span>
+                        <span>⭐ 4.8</span>
+                    </div>
+                    <h3>Bohol Island Hopping</h3>
+                    <p>Explore beautiful islands, snorkeling spots and crystal-clear waters.</p>
+                    <div class="tour-bottom">
+                        <div class="price">₱1,500 <small>/ person</small></div>
+                        <button class="btn btn-outline" onclick="openBooking('Island Hopping')">Book</button>
+                    </div>
+                </div>
+            </article>
+        </div>
+    </div>
+</section>
+
+<!-- BOOKING MODAL -->
+<div class="modal" id="bookingModal">
+    <div class="modal-content">
+        <div class="modal-close" onclick="closeBooking()">×</div>
+        <h2>Book Your Tour</h2>
+        <form class="modal-form" id="checkoutForm" onsubmit="submitBooking(event)">
+            <input type="text" id="modalTour" placeholder="Selected tour" readonly required>
+            <input type="text" id="modalName" placeholder="Full Name" required>
+            <input type="email" id="modalEmail" placeholder="Email Address" required>
+            <input type="tel" id="modalPhone" placeholder="Phone Number" required>
+            <input type="date" id="modalBookingDate" required>
+            <select id="modalGuests" required>
+                <option value="">Select number of guests</option>
+                <option value="1">1 Guest</option>
+                <option value="2">2 Guests</option>
+                <option value="3">3 Guests</option>
+                <option value="4">4 Guests</option>
+                <option value="5">5 Guests</option>
+                <option value="6">6+ Guests</option>
+            </select>
+            <button type="submit" id="submitBtn" class="btn btn-primary">Proceed to Payment</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    function toggleMenu() {
+        document.getElementById("navigation").classList.toggle("active");
+    }
+
+    function openBooking(tourName, date = '', guests = '1') {
+        document.getElementById("modalTour").value = tourName;
+        if (date) document.getElementById("modalBookingDate").value = date;
+        if (guests) document.getElementById("modalGuests").value = guests;
+        document.getElementById("bookingModal").classList.add("active");
+    }
+
+    function closeBooking() {
+        document.getElementById("bookingModal").classList.remove("active");
+    }
+
+    function searchBooking() {
+        const tour = document.getElementById("tourSelect").value;
+        const date = document.getElementById("bookingDate").value;
+        const guests = document.getElementById("guestSelect").value;
+
+        if (!tour || tour === "Select a tour" || !date) {
+            alert("Please select a tour and date.");
+            return;
+        }
+        openBooking(tour, date, guests);
+    }
+
+    async function submitBooking(event) {
+        event.preventDefault();
+        const btn = document.getElementById('submitBtn');
+        btn.disabled = true;
+        btn.innerText = 'Connecting to Payment...';
+
+        const payload = {
+            tour: document.getElementById('modalTour').value,
+            customerName: document.getElementById('modalName').value,
+            customerEmail: document.getElementById('modalEmail').value,
+            customerPhone: document.getElementById('modalPhone').value,
+            bookingDate: document.getElementById('modalBookingDate').value,
+            guests: parseInt(document.getElementById('modalGuests').value)
+        };
+
+        try {
+            const res = await fetch('/api/create-checkout-session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await res.json();
+            if (res.ok && data.checkoutUrl) {
+                window.location.href = data.checkoutUrl;
+            } else {
+                alert(data.error || 'Failed to initiate checkout.');
+                btn.disabled = false;
+                btn.innerText = 'Proceed to Payment';
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Server network error. Please try again.');
+            btn.disabled = false;
+            btn.innerText = 'Proceed to Payment';
+        }
+    }
+
+    document.getElementById("bookingModal").addEventListener("click", function(event) {
+        if (event.target === this) {
+            closeBooking();
+        }
+    });
+</script>
+</body>
+</html>
