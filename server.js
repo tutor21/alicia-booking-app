@@ -27,7 +27,6 @@ app.post('/api/create-checkout-session', async (req, res) => {
             body: JSON.stringify({
                 data: {
                     attributes: {
-                        // 👇 PayMongo requires line_items for checkout sessions
                         line_items: [
                             {
                                 currency: 'PHP',
@@ -36,8 +35,9 @@ app.post('/api/create-checkout-session', async (req, res) => {
                                 quantity: 1
                             }
                         ],
-                        payment_method_allowed: ['card', 'gcash', 'qrph'],
-                        success_url: 'https://' + req.get('host') + '/success.html',
+                        // 👇 PayMongo API requires payment_method_types
+                        payment_method_types: ['card', 'gcash', 'qrph'],
+                        success_url: 'https://' + req.get('host') + '/index.html?success=true',
                         cancel_url: 'https://' + req.get('host') + '/index.html',
                         description: `Booking date: ${bookingDate} | Customer: ${customerName} (${customerEmail})`
                     }
