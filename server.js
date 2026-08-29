@@ -22,16 +22,15 @@ app.get('/blog-3', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'blog-3.html'));
 });
 
-// Fee Calculation Helper Function
+// Fee Calculation Helper Function (Gross-Up Formula for Convenience Fees)
 function calculatePayMongoTotal(subtotal, paymentMethod) {
     const RATES = {
         qrph: 0.0134, // 1.34%
-        maya: 0.0179, // 1.79%
-        card: 0.035   // standard estimate if applicable
+        maya: 0.0179  // 1.79%
     };
 
     const methodKey = paymentMethod ? paymentMethod.toLowerCase() : 'qrph';
-    const feeRate = RATES[methodKey] || 0.0134;
+    const feeRate = RATES[methodKey] !== undefined ? RATES[methodKey] : 0.0134;
 
     // Apply Gross-Up Formula: Subtotal / (1 - rate)
     const grandTotalPesos = subtotal / (1 - feeRate);
@@ -44,16 +43,16 @@ function calculatePayMongoTotal(subtotal, paymentMethod) {
     };
 }
 
-// Create Checkout Session Endpoint
+// Create Checkout Session Endpoint with Calculated Convenience Fees
 app.post('/api/create-checkout-session', async (req, res) => {
     try {
-        const { tour, customerName, customerEmail, customerPhone, bookingDate, guests } = req.body;
+        const { tour, customerName, customerEmail, customerPhone, bookingDate, guests, paymentMethod } = req.body;
         
         // Base price in pesos (₱750.00)
         const baseSubtotal = 750.00; 
 
-        // Calculate total including PayMongo fee
-        const calculation = calculatePayMongoTotal(baseSubtotal, 'qrph');
+        // Calculate total including the specific payment method fee (defaults to qrph)
+        const calculation = calculatePayMongoTotal(baseSubtotal, paymentMethod || 'qrph');
 
         const options = {
             method: 'POST',
@@ -69,7 +68,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
                             {
                                 currency: 'PHP',
                                 amount: calculation.paymongoAmount,
-                                name: `${tour} (${guests} Guest(s))`,
+                                name: `${tour} (${guests} Guest(s)) - Inc. Convenience Fee`,
                                 quantity: 1
                             }
                         ],
