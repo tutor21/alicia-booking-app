@@ -3,24 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PayMongo API Test Console | TAPP Tours</title>
+    <title>PayMongo Key Diagnostic Console | TAPP Tours</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-stone-50 font-sans min-h-screen p-6">
     <div class="max-w-3xl mx-auto">
         <div class="mb-6 flex justify-between items-center">
             <div>
-                <span class="text-xs font-bold uppercase tracking-widest text-amber-600 bg-amber-50 px-3 py-1 rounded-full border border-amber-200">Sandbox / Test Mode</span>
+                <span class="text-xs font-bold uppercase tracking-widest text-amber-600 bg-amber-50 px-3 py-1 rounded-full border border-amber-200">Sandbox / Key Diagnostic Mode</span>
                 <h1 class="text-3xl font-bold text-stone-900 mt-2">PayMongo Key Diagnostic Console</h1>
-                <p class="text-stone-600 text-sm mt-1">Use this page to verify if your live or test `PAYMONGO_SECRET_KEY` is working correctly on your server with custom amounts.</p>
+                <p class="text-stone-600 text-sm mt-1">Test your PayMongo secret and public keys dynamically with custom amounts and payloads.</p>
             </div>
             <a href="index.html" class="text-sm font-bold text-emerald-700 hover:underline">← Back to Homepage</a>
         </div>
 
         <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6 sm:p-8 mb-6">
-            <h2 class="text-xl font-bold text-stone-900 mb-4">Test Checkout Session Payload</h2>
+            <h2 class="text-xl font-bold text-stone-900 mb-4">PayMongo API Credentials Override</h2>
             
             <form id="testForm" onsubmit="runTestCheckout(event)" class="space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-4 border-b border-stone-100">
+                    <div>
+                        <label class="block text-xs font-bold text-stone-600 uppercase mb-1">PayMongo Secret Key (`sk_test_...`)</label>
+                        <input type="password" id="testSecretKey" placeholder="Leave blank to use server .env key" class="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-sm outline-none font-mono focus:ring-2 focus:ring-emerald-600">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-stone-600 uppercase mb-1">PayMongo Public Key (`pk_test_...`)</label>
+                        <input type="text" id="testPublicKey" placeholder="Optional public key" class="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-sm outline-none font-mono focus:ring-2 focus:ring-emerald-600">
+                    </div>
+                </div>
+
+                <h2 class="text-xl font-bold text-stone-900 pt-2 mb-2">Checkout Session Payload</h2>
+
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-bold text-stone-600 uppercase mb-1">Tour / Item Name</label>
@@ -59,7 +72,7 @@
                 </div>
 
                 <button type="submit" id="testBtn" class="w-full bg-emerald-800 hover:bg-emerald-900 text-white font-bold py-3.5 rounded-xl transition-all shadow-md text-sm">
-                    Send Test Request to /api/create-checkout-session
+                    Send Test Request with Keys to /api/create-checkout-session
                 </button>
             </form>
         </div>
@@ -77,7 +90,7 @@
                 </a>
             </div>
 
-            <pre id="outputLog" class="bg-stone-950 p-4 rounded-xl text-xs font-mono text-emerald-300 overflow-x-auto min-h-[120px] max-h-[300px] border border-stone-900">// Click the button above to test PayMongo API connectivity...</pre>
+            <pre id="outputLog" class="bg-stone-950 p-4 rounded-xl text-xs font-mono text-emerald-300 overflow-x-auto min-h-[120px] max-h-[300px] border border-stone-900">// Enter keys above and click the button to test PayMongo API connectivity...</pre>
         </div>
     </div>
 
@@ -90,11 +103,11 @@
             const actionBox = document.getElementById('actionBox');
             
             btn.disabled = true;
-            btn.innerText = 'Connecting to PayMongo API...';
+            btn.innerText = 'Connecting to PayMongo API with test keys...';
             badge.className = 'px-2.5 py-0.5 rounded text-[11px] font-mono font-bold bg-amber-500/20 text-amber-400';
             badge.innerText = 'PENDING';
             actionBox.classList.add('hidden');
-            logBox.innerText = 'Sending POST request to /api/create-checkout-session...';
+            logBox.innerText = 'Sending POST request with key payload...';
 
             const payload = {
                 tour: document.getElementById('testTour').value,
@@ -103,7 +116,9 @@
                 customerPhone: document.getElementById('testPhone').value,
                 bookingDate: document.getElementById('testDate').value,
                 guests: parseInt(document.getElementById('testGuests').value) || 1,
-                amount: parseFloat(document.getElementById('testAmount').value) || 750
+                amount: parseFloat(document.getElementById('testAmount').value) || 750,
+                secretKey: document.getElementById('testSecretKey').value.trim(),
+                publicKey: document.getElementById('testPublicKey').value.trim()
             };
 
             try {
@@ -129,10 +144,10 @@
                 console.error(err);
                 badge.className = 'px-2.5 py-0.5 rounded text-[11px] font-mono font-bold bg-red-500/20 text-red-400';
                 badge.innerText = 'NETWORK ERROR';
-                logBox.innerText = `Error: ${err.message}\n(Ensure your Node.js server is running and PAYMONGO_SECRET_KEY is configured in Render environment variables.)`;
+                logBox.innerText = `Error: ${err.message}\n(Ensure your Node.js server is running.)`;
             } finally {
                 btn.disabled = false;
-                btn.innerText = 'Send Test Request to /api/create-checkout-session';
+                btn.innerText = 'Send Test Request with Keys to /api/create-checkout-session';
             }
         }
     </script>

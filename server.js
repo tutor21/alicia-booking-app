@@ -6,7 +6,6 @@ const { Resend } = require('resend');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Initialize Resend with API key from environment variables
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 app.use(cors());
@@ -15,13 +14,12 @@ app.use(express.static('public'));
 
 app.post('/api/create-checkout-session', async (req, res) => {
     try {
-        const { tour, customerName, customerEmail, customerPhone, bookingDate, guests, amount } = req.body;
+        const { tour, customerName, customerEmail, customerPhone, bookingDate, guests, amount, secretKey } = req.body;
 
         if (!tour || !customerName || !customerEmail || !bookingDate || !guests) {
             return res.status(400).json({ error: 'Missing required booking details.' });
         }
 
-        // Determine amount in centavos (supports custom amount from test console or defaults to ₱750)
         let amountInCents = 75000;
         if (amount !== undefined && !isNaN(amount)) {
             amountInCents = Math.round(parseFloat(amount) * 100);
@@ -29,9 +27,10 @@ app.post('/api/create-checkout-session', async (req, res) => {
             amountInCents = 75000; 
         }
 
-        const paymongoSecretKey = process.env.PAYMONGO_SECRET_KEY;
+        // Use custom secret key from diagnostic console if provided, otherwise fallback to server .env
+        const paymongoSecretKey = secretKey && secretKey.startsWith('sk_') ? secretKey : process.env.PAYMONGO_SECRET_KEY;
         if (!paymongoSecretKey) {
-            return res.status(500).json({ error: 'PayMongo secret key is not configured on the server.' });
+            return res.status(500).json({ error: 'PayMongo secret key is not configured on the server or provided in test console.' });
         }
 
         const host = req.get('host');
@@ -88,11 +87,11 @@ app.post('/api/create-checkout-session', async (req, res) => {
         if (!response.ok || !data.data) {
             console.error("PayMongo Error:", data);
             const errorMessage = data.errors && data.errors[0] ? data.errors[0].detail : 'Failed to initiate PayMongo checkout session.';
-            return res.status(500).json({ error: errorMessage });
+            return res.status(500).json({ error: errorMessage, details: data });
         }
 
         const checkoutUrl = data.data.attributes.checkout_url;
-        res.json({ checkoutUrl });
+        res.json({ checkoutUrl, keyUsed: paymongoSecretKey.substring(0, 10) + '...' });
 
     } catch (error) {
         console.error("Checkout Error:", error);
@@ -120,7 +119,6 @@ app.post('/api/paymongo/webhook', async (req, res) => {
 
             console.log(`✅ Payment successful for ${customerName} (${customerEmail}). Triggering Resend emails...`);
 
-            // 1. Send customer confirmation email
             if (customerEmail && process.env.RESEND_API_KEY) {
                 await resend.emails.send({
                     from: process.env.RESEND_FROM_EMAIL || 'bookings@aliciapanoramicpark.com',
@@ -147,7 +145,6 @@ app.post('/api/paymongo/webhook', async (req, res) => {
                 });
             }
 
-            // 2. Send admin notification email
             if (process.env.ADMIN_EMAIL && process.env.RESEND_API_KEY) {
                 await resend.emails.send({
                     from: process.env.RESEND_FROM_EMAIL || 'bookings@aliciapanoramicpark.com',
@@ -176,5 +173,5 @@ app.post('/api/paymongo/webhook', async (req, res) => {
 });
 
 app.listen(PORT, () => {
-    console.log(`✅ TAPP Tours server with Resend running on port ${PORT}`);
+    console.log(`✅ TAPP Tours server with Resend & Key Override running on port ${PORT}`);
 });
