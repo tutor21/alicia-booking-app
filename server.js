@@ -9,6 +9,19 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Explicit Blog Routes
+app.get('/blog-1', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'blog-1.html'));
+});
+
+app.get('/blog-2', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'blog-2.html'));
+});
+
+app.get('/blog-3', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'blog-3.html'));
+});
+
 // Create Checkout Session Endpoint
 app.post('/api/create-checkout-session', async (req, res) => {
     try {
@@ -35,7 +48,6 @@ app.post('/api/create-checkout-session', async (req, res) => {
                                 quantity: 1
                             }
                         ],
-                        // 👇 PayMongo API requires payment_method_types
                         payment_method_types: ['card', 'gcash', 'qrph'],
                         success_url: 'https://' + req.get('host') + '/index.html?success=true',
                         cancel_url: 'https://' + req.get('host') + '/index.html',
