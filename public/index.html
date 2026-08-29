@@ -45,7 +45,7 @@
         .booking-wrapper { margin-top: -55px; position: relative; z-index: 10; }
         .booking-box { background: #fff; border-radius: 8px; box-shadow: 0 12px 45px rgba(0,0,0,.14); padding: 30px; }
         .booking-box h3 { margin-bottom: 20px; font-size: 23px; }
-        .booking-grid { display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 12px; }
+        .booking-grid { display: grid; grid-template-columns: 2fr 1.2fr 1.2fr 1fr auto; gap: 12px; }
         .field label { display: block; font-size: 12px; font-weight: 700; margin-bottom: 6px; color: #666; }
         .field input, .field select { width: 100%; height: 48px; border: 1px solid #ddd; border-radius: 5px; padding: 0 12px; background: #fff; }
 
@@ -206,6 +206,28 @@
                 <div class="field">
                     <label>DATE</label>
                     <input type="date" id="bookingDate">
+                </div>
+                <div class="field">
+                    <label>TIME SLOT</label>
+                    <select id="tourTimeSlot">
+                        <option value="04:00 AM">04:00 AM (Sunrise)</option>
+                        <option value="05:00 AM">05:00 AM</option>
+                        <option value="06:00 AM">06:00 AM</option>
+                        <option value="07:00 AM">07:00 AM</option>
+                        <option value="08:00 AM">08:00 AM</option>
+                        <option value="09:00 AM">09:00 AM</option>
+                        <option value="10:00 AM">10:00 AM</option>
+                        <option value="11:00 AM">11:00 AM</option>
+                        <option value="12:00 PM">12:00 PM (Noon)</option>
+                        <option value="01:00 PM">01:00 PM</option>
+                        <option value="02:00 PM">02:00 PM</option>
+                        <option value="03:00 PM">03:00 PM</option>
+                        <option value="04:00 PM">04:00 PM</option>
+                        <option value="05:00 PM">05:00 PM (Sunset)</option>
+                        <option value="06:00 PM">06:00 PM</option>
+                        <option value="07:00 PM">07:00 PM</option>
+                        <option value="08:00 PM">08:00 PM</option>
+                    </select>
                 </div>
                 <div class="field">
                     <label>GUESTS</label>
@@ -508,6 +530,26 @@
             <input type="email" id="modalEmail" placeholder="Email Address" required>
             <input type="tel" id="modalPhone" placeholder="Phone Number" required>
             <input type="date" id="modalBookingDate" required>
+            <select id="modalTimeSlot" required>
+                <option value="">Select time slot</option>
+                <option value="04:00 AM">04:00 AM (Sunrise)</option>
+                <option value="05:00 AM">05:00 AM</option>
+                <option value="06:00 AM">06:00 AM</option>
+                <option value="07:00 AM">07:00 AM</option>
+                <option value="08:00 AM">08:00 AM</option>
+                <option value="09:00 AM">09:00 AM</option>
+                <option value="10:00 AM">10:00 AM</option>
+                <option value="11:00 AM">11:00 AM</option>
+                <option value="12:00 PM">12:00 PM (Noon)</option>
+                <option value="01:00 PM">01:00 PM</option>
+                <option value="02:00 PM">02:00 PM</option>
+                <option value="03:00 PM">03:00 PM</option>
+                <option value="04:00 PM">04:00 PM</option>
+                <option value="05:00 PM">05:00 PM (Sunset)</option>
+                <option value="06:00 PM">06:00 PM</option>
+                <option value="07:00 PM">07:00 PM</option>
+                <option value="08:00 PM">08:00 PM</option>
+            </select>
             <select id="modalGuests" required>
                 <option value="">Select number of guests</option>
                 <option value="1">1 Guest</option>
@@ -526,9 +568,10 @@
         document.getElementById("navigation").classList.toggle("active");
     }
 
-    function openBooking(tourName, date = '', guests = '1') {
+    function openBooking(tourName, date = '', time = '04:00 AM', guests = '1') {
         document.getElementById("modalTour").value = tourName;
         if (date) document.getElementById("modalBookingDate").value = date;
+        if (time) document.getElementById("modalTimeSlot").value = time;
         if (guests) document.getElementById("modalGuests").value = guests;
         document.getElementById("bookingModal").classList.add("active");
     }
@@ -549,13 +592,14 @@
     function searchBooking() {
         const tour = document.getElementById("tourSelect").value;
         const date = document.getElementById("bookingDate").value;
+        const time = document.getElementById("tourTimeSlot").value;
         const guests = document.getElementById("guestSelect").value;
 
         if (!tour || tour === "Select a tour" || !date) {
             showNotification("Please select an available tour and date.");
             return;
         }
-        openBooking(tour, date, guests);
+        openBooking(tour, date, time, guests);
     }
 
     async function submitBooking(event) {
@@ -570,6 +614,7 @@
             customerEmail: document.getElementById('modalEmail').value,
             customerPhone: document.getElementById('modalPhone').value,
             bookingDate: document.getElementById('modalBookingDate').value,
+            tourTime: document.getElementById('modalTimeSlot').value,
             guests: parseInt(document.getElementById('modalGuests').value)
         };
 

@@ -14,7 +14,7 @@ app.use(express.static('public'));
 
 app.post('/api/create-checkout-session', async (req, res) => {
     try {
-        const { tour, customerName, customerEmail, customerPhone, bookingDate, guests, amount, secretKey } = req.body;
+        const { tour, customerName, customerEmail, customerPhone, bookingDate, tourTime, guests, amount, secretKey } = req.body;
 
         if (!tour || !customerName || !customerEmail || !bookingDate || !guests) {
             return res.status(400).json({ error: 'Missing required booking details.' });
@@ -27,7 +27,6 @@ app.post('/api/create-checkout-session', async (req, res) => {
             amountInCents = 75000; 
         }
 
-        // Use custom secret key from diagnostic console if provided, otherwise fallback to server .env
         const paymongoSecretKey = secretKey && secretKey.startsWith('sk_') ? secretKey : process.env.PAYMONGO_SECRET_KEY;
         if (!paymongoSecretKey) {
             return res.status(500).json({ error: 'PayMongo secret key is not configured on the server or provided in test console.' });
@@ -35,6 +34,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
 
         const host = req.get('host');
         const protocol = req.protocol;
+        const selectedTime = tourTime || '04:00 AM';
 
         const paymongoPayload = {
             data: {
@@ -54,7 +54,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
                         {
                             currency: 'PHP',
                             amount: amountInCents,
-                            description: `Booking Date: ${bookingDate} | Group Size: ${guests} Guest(s)`,
+                            description: `Visit Date: ${bookingDate} at ${selectedTime} | Group Size: ${guests} Guest(s)`,
                             name: tour,
                             quantity: 1
                         }
@@ -64,6 +64,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
                         customerName,
                         customerPhone: customerPhone || 'N/A',
                         bookingDate,
+                        tourTime: selectedTime,
                         guests: guests.toString(),
                         tourName: tour
                     }
@@ -113,6 +114,7 @@ app.post('/api/paymongo/webhook', async (req, res) => {
             const customerName = billing.name || metadata.customerName || 'Valued Guest';
             const tourName = metadata.tourName || metadata.tour || 'Alicia Panoramic Park Tour';
             const bookingDate = metadata.bookingDate || 'N/A';
+            const tourTime = metadata.tourTime || '04:00 AM';
             const guests = metadata.guests || '1';
             const amountPaid = checkoutData.attributes.line_items[0].amount / 100;
             const sessionId = checkoutData.id;
@@ -132,7 +134,7 @@ app.post('/api/paymongo/webhook', async (req, res) => {
                         
                         <table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px;">
                           <tr><td style="padding: 10px; border-bottom: 1px solid #ddd;"><strong>Tour Experience:</strong></td><td style="padding: 10px; border-bottom: 1px solid #ddd;">${tourName}</td></tr>
-                          <tr><td style="padding: 10px; border-bottom: 1px solid #ddd;"><strong>Visit Date:</strong></td><td style="padding: 10px; border-bottom: 1px solid #ddd;">${bookingDate}</td></tr>
+                          <tr><td style="padding: 10px; border-bottom: 1px solid #ddd;"><strong>Visit Date & Time:</strong></td><td style="padding: 10px; border-bottom: 1px solid #ddd;">${bookingDate} at ${tourTime}</td></tr>
                           <tr><td style="padding: 10px; border-bottom: 1px solid #ddd;"><strong>Group Size:</strong></td><td style="padding: 10px; border-bottom: 1px solid #ddd;">${guests} Guest(s)</td></tr>
                           <tr><td style="padding: 10px; border-bottom: 1px solid #ddd;"><strong>Amount Paid:</strong></td><td style="padding: 10px; border-bottom: 1px solid #ddd; color: #2e7d32; font-weight: bold;">₱${amountPaid.toLocaleString()} PHP</td></tr>
                           <tr><td style="padding: 10px; border-bottom: 1px solid #ddd;"><strong>Status:</strong></td><td style="padding: 10px; border-bottom: 1px solid #ddd; color: #2e7d32; font-weight: bold;">PAID & CONFIRMED</td></tr>
@@ -156,7 +158,7 @@ app.post('/api/paymongo/webhook', async (req, res) => {
                       <p><strong>Email:</strong> ${customerEmail}</p>
                       <p><strong>Phone:</strong> ${billing.phone || metadata.customerPhone || 'N/A'}</p>
                       <p><strong>Tour:</strong> ${tourName}</p>
-                      <p><strong>Date:</strong> ${bookingDate}</p>
+                      <p><strong>Date & Time:</strong> ${bookingDate} at ${tourTime}</p>
                       <p><strong>Guests:</strong> ${guests}</p>
                       <p><strong>Total Paid:</strong> ₱${amountPaid.toLocaleString()} PHP</p>
                       <p><strong>PayMongo Session ID:</strong> ${sessionId}</p>
@@ -173,5 +175,5 @@ app.post('/api/paymongo/webhook', async (req, res) => {
 });
 
 app.listen(PORT, () => {
-    console.log(`✅ TAPP Tours server with Resend & Key Override running on port ${PORT}`);
+    console.log(`✅ TAPP Tours server with Time Slot & Resend running on port ${PORT}`);
 });
