@@ -1,4 +1,4 @@
-const express = require('express');
+=const express = require('express');
 const path = require('path');
 const app = express();
 
@@ -9,13 +9,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Create Checkout Session Endpoint with QRPh enabled
+// Create Checkout Session Endpoint
 app.post('/api/create-checkout-session', async (req, res) => {
     try {
         const { tour, customerName, customerEmail, customerPhone, bookingDate, guests } = req.body;
         
-        // Amount calculation in centavos (e.g., ₱750.00 = 75000)
-        // Adjust this dynamically if you add more tours with different pricing
+        // Amount in centavos (₱750.00 = 75000)
         const amountInCentavos = 75000; 
 
         const options = {
@@ -28,13 +27,19 @@ app.post('/api/create-checkout-session', async (req, res) => {
             body: JSON.stringify({
                 data: {
                     attributes: {
-                        amount: amountInCentavos,
-                        currency: 'PHP',
-                        description: `${tour} - ${guests} Guest(s) on ${bookingDate}`,
-                        // 👇 Including 'qrph' here ensures Scan to Pay shows up on your checkout page
+                        // 👇 PayMongo requires line_items for checkout sessions
+                        line_items: [
+                            {
+                                currency: 'PHP',
+                                amount: amountInCentavos,
+                                name: `${tour} (${guests} Guest(s))`,
+                                quantity: 1
+                            }
+                        ],
                         payment_method_allowed: ['card', 'gcash', 'qrph'],
                         success_url: 'https://' + req.get('host') + '/success.html',
-                        cancel_url: 'https://' + req.get('host') + '/index.html'
+                        cancel_url: 'https://' + req.get('host') + '/index.html',
+                        description: `Booking date: ${bookingDate} | Customer: ${customerName} (${customerEmail})`
                     }
                 }
             })
