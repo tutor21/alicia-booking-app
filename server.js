@@ -24,7 +24,6 @@ app.get('/blog-3', (req, res) => {
 
 async function createParkBookingSession(bookingDetails, host) {
   const paymongoSecretKey = process.env.PAYMONGO_SECRET_KEY;
-  // Updated to use the V2 Checkout Sessions endpoint required for pass_on_fees
   const url = 'https://api.paymongo.com/v2/checkout_sessions';
   
   const options = {
@@ -40,7 +39,8 @@ async function createParkBookingSession(bookingDetails, host) {
           show_description: true,
           show_line_items: true,
           pass_on_fees: true, 
-          payment_method_types: ['card', 'gcash', 'maya', 'qrph'],
+          // Changed 'maya' to 'paymaya' to fix the API validation error
+          payment_method_types: ['card', 'gcash', 'paymaya', 'qrph'],
           line_items: [
             {
               amount: bookingDetails.totalPriceInCents, 
