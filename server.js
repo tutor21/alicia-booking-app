@@ -1,94 +1,110 @@
+require('dotenv').config();
 const express = require('express');
-const path = require('path');
-const app = express();
+const cors = require('cors');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
+const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
+app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static('public')); // Serves your front-end files (index.html, etc.)
 
-// Explicit Blog Routes
-app.get('/blog-1', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'blog-1.html'));
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+    res.json({ status: 'active', timestamp: new Date() });
 });
 
-app.get('/blog-2', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'blog-2.html'));
-});
-
-app.get('/blog-3', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'blog-3.html'));
-});
-
-async function createParkBookingSession(bookingDetails, host) {
-  const paymongoSecretKey = process.env.PAYMONGO_SECRET_KEY;
-  const url = 'https://api.paymongo.com/v1/checkout_sessions';
-  
-  const options = {
-    method: 'POST',
-    headers: {
-      accept: 'application/json',
-      'content-type': 'application/json',
-      authorization: `Basic ${Buffer.from(paymongoSecretKey + ':').toString('base64')}`
-    },
-    body: JSON.stringify({
-      data: {
-        attributes: {
-          payment_method_types: ['card', 'gcash', 'paymaya', 'qrph'],
-          line_items: [
-            {
-              amount: bookingDetails.totalPriceInCents, 
-              currency: 'PHP',
-              name: `Alicia Panoramic Park - ${bookingDetails.tourType}`, 
-              quantity: bookingDetails.guestCount
-            }
-          ],
-          description: `Booking date: ${bookingDetails.bookingDate} | Customer: ${bookingDetails.customerName} (${bookingDetails.customerEmail})`,
-          success_url: `https://${host}/index.html?success=true`,
-          cancel_url: `https://${host}/index.html`
-        }
-      }
-    })
-  };
-
-  const response = await fetch(url, options);
-  const result = await response.json();
-  
-  if (!response.ok) {
-    throw new Error(result.errors?.[0]?.detail || 'Session creation failed');
-  }
-  
-  return result.data.attributes.checkout_url;
-}
-
-// Create Checkout Session Endpoint
+// Create Stripe Checkout Session (Alicia Panoramic Park Tour: Flat rate ₱750 for 1-5 guests)
 app.post('/api/create-checkout-session', async (req, res) => {
     try {
         const { tour, customerName, customerEmail, customerPhone, bookingDate, guests } = req.body;
-        
-        // Base amount in cents (₱750.00 base per guest)
-        const baseAmount = 75000; 
-        const guestCount = parseInt(guests) || 1;
 
-        const bookingDetails = {
-            tourType: tour || 'Alicia Panoramic Park Tour',
-            guestCount: guestCount,
-            totalPriceInCents: baseAmount * guestCount,
-            bookingDate: bookingDate,
-            customerName: customerName,
-            customerEmail: customerEmail
-        };
+        // Validation
+        if (!tour || !customerName || !customerEmail || !bookingDate || !guests) {
+            return res.status(400).json({ error: 'Missing required booking details.' });
+        }
 
-        const checkoutUrl = await createParkBookingSession(bookingDetails, req.get('host'));
-        res.json({ checkoutUrl });
-    } catch (err) {
-        console.error('Booking Payment Error:', err.message);
-        res.status(400).json({ error: err.message || 'Server error connecting to payment gateway.' });
+        let unitAmount = 0;
+
+        if (tour === "Alicia Panoramic Park Tour") {
+            // Flat rate of ₱750 for groups of 1 to 5 guests. 
+            // Stripe expects amounts in the smallest currency unit (centavos for PHP), so ₱750 = 75000
+            unitAmount = 75000; 
+        } else {
+            return res.status(400).json({ error: "Invalid or currently unavailable tour selected." });
+        }
+
+        const session = await stripe.checkout.sessions.create({
+            payment_method_types: ['card'],
+            customer_email: customerEmail,
+            line_items: [
+                {
+                    price_data: {
+                        currency: 'php',
+                        product_data: {
+                            name: tour,
+                            description: `Booking Date: ${bookingDate} | Group Size: ${guests} Guest(s)`
+                        },
+                        unit_amount: unitAmount,
+                    },
+                    quantity: 1, // Quantity 1 for a flat group package rate
+                },
+            ],
+            mode: 'payment',
+            success_url: `${req.protocol}://${req.get('host')}/success.html?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${req.protocol}://${req.get('host')}/index.html`,
+            metadata: {
+                customerName,
+                customerPhone: customerPhone || 'N/A',
+                bookingDate,
+                guests: guests.toString()
+            }
+        });
+
+        res.json({ checkoutUrl: session.url });
+    } catch (error) {
+        console.error("Stripe Checkout Error:", error);
+        res.status(500).json({ error: error.message || 'Internal server error while setting up payment.' });
     }
 });
 
+// Optional: Webhook endpoint to fulfill orders after successful payment
+app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+    const sig = req.headers['stripe-signature'];
+    let event;
+
+    try {
+        event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+    } catch (err) {
+        console.error(`Webhook signature verification failed:`, err.message);
+        return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
+
+    // Handle the checkout.session.completed event
+    if (event.type === 'checkout.session.completed') {
+        const session = event.data.object;
+        
+        // Extract metadata
+        const bookingDetails = {
+            customerName: session.metadata.customerName,
+            customerEmail: session.customer_email,
+            customerPhone: session.metadata.customerPhone,
+            bookingDate: session.metadata.bookingDate,
+            guests: session.metadata.guests,
+            amountPaid: session.amount_total / 100,
+            paymentIntentId: session.payment_intent
+        };
+
+        console.log('Payment Successful! Booking details received:', bookingDetails);
+        // TODO: Insert code here to save booking details to your database or send confirmation email
+    }
+
+    res.json({ received: true });
+});
+
+// Start server
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
