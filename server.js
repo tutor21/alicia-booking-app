@@ -22,77 +22,73 @@ app.get('/blog-3', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'blog-3.html'));
 });
 
-// Fee Calculation Helper Function (Gross-Up Formula for Convenience Fees)
-function calculatePayMongoTotal(subtotal, paymentMethod) {
-    const RATES = {
-        qrph: 0.0134, // 1.34%
-        maya: 0.0179  // 1.79%
-    };
+async function createParkBookingSession(bookingDetails, host) {
+  const paymongoSecretKey = process.env.PAYMONGO_SECRET_KEY;
+  const url = 'https://api.paymongo.com/v1/checkout_sessions';
+  
+  const options = {
+    method: 'POST',
+    headers: {
+      accept: 'application/json',
+      'content-type': 'application/json',
+      authorization: `Basic ${Buffer.from(paymongoSecretKey + ':').toString('base64')}`
+    },
+    body: JSON.stringify({
+      data: {
+        attributes: {
+          show_description: true,
+          show_line_items: true,
+          pass_on_fees: true, 
+          payment_method_types: ['card', 'gcash', 'maya', 'qrph'],
+          line_items: [
+            {
+              amount: bookingDetails.totalPriceInCents, 
+              currency: 'PHP',
+              name: `Alicia Panoramic Park - ${bookingDetails.tourType}`, 
+              quantity: bookingDetails.guestCount
+            }
+          ],
+          description: `Booking date: ${bookingDetails.bookingDate} | Customer: ${bookingDetails.customerName} (${bookingDetails.customerEmail})`,
+          success_url: `https://${host}/index.html?success=true`,
+          cancel_url: `https://${host}/index.html`
+        }
+      }
+    })
+  };
 
-    const methodKey = paymentMethod ? paymentMethod.toLowerCase() : 'qrph';
-    const feeRate = RATES[methodKey] !== undefined ? RATES[methodKey] : 0.0134;
-
-    // Apply Gross-Up Formula: Subtotal / (1 - rate)
-    const grandTotalPesos = subtotal / (1 - feeRate);
-    const roundedPesos = Math.round(grandTotalPesos * 100) / 100;
-    const amountInCentavos = Math.round(roundedPesos * 100);
-
-    return {
-        displayPrice: roundedPesos.toFixed(2),
-        paymongoAmount: amountInCentavos
-    };
+  const response = await fetch(url, options);
+  const result = await response.json();
+  
+  if (!response.ok) {
+    throw new Error(result.errors?.[0]?.detail || 'Session creation failed');
+  }
+  
+  return result.data.attributes.checkout_url;
 }
 
-// Create Checkout Session Endpoint with Calculated Convenience Fees
+// Create Checkout Session Endpoint
 app.post('/api/create-checkout-session', async (req, res) => {
     try {
-        const { tour, customerName, customerEmail, customerPhone, bookingDate, guests, paymentMethod } = req.body;
+        const { tour, customerName, customerEmail, customerPhone, bookingDate, guests } = req.body;
         
-        // Base price in pesos (₱750.00)
-        const baseSubtotal = 750.00; 
+        // Base amount in cents (₱750.00 base per booking unit)
+        const baseAmount = 75000; 
+        const guestCount = parseInt(guests) || 1;
 
-        // Calculate total including the specific payment method fee (defaults to qrph)
-        const calculation = calculatePayMongoTotal(baseSubtotal, paymentMethod || 'qrph');
-
-        const options = {
-            method: 'POST',
-            headers: {
-                Accept: 'application/json',
-                'Content-Type': 'application/json',
-                Authorization: 'Basic ' + Buffer.from(process.env.PAYMONGO_SECRET_KEY + ':').toString('base64')
-            },
-            body: JSON.stringify({
-                data: {
-                    attributes: {
-                        line_items: [
-                            {
-                                currency: 'PHP',
-                                amount: calculation.paymongoAmount,
-                                name: `${tour} (${guests} Guest(s)) - Inc. Convenience Fee`,
-                                quantity: 1
-                            }
-                        ],
-                        payment_method_types: ['card', 'gcash', 'qrph'],
-                        success_url: 'https://' + req.get('host') + '/index.html?success=true',
-                        cancel_url: 'https://' + req.get('host') + '/index.html',
-                        description: `Booking date: ${bookingDate} | Customer: ${customerName} (${customerEmail})`
-                    }
-                }
-            })
+        const bookingDetails = {
+            tourType: tour || 'Alicia Panoramic Park Tour',
+            guestCount: 1, // Keep quantity as 1 and scale amount to ensure pass_on_fees calculate correctly across line items
+            totalPriceInCents: baseAmount * guestCount,
+            bookingDate: bookingDate,
+            customerName: customerName,
+            customerEmail: customerEmail
         };
 
-        const response = await fetch('https://api.paymongo.com/v1/checkout_sessions', options);
-        const data = await response.json();
-
-        if (response.ok && data.data) {
-            res.json({ checkoutUrl: data.data.attributes.checkout_url });
-        } else {
-            const errorMsg = data.errors ? data.errors[0].detail : 'Checkout creation failed';
-            res.status(400).json({ error: errorMsg });
-        }
+        const checkoutUrl = await createParkBookingSession(bookingDetails, req.get('host'));
+        res.json({ checkoutUrl });
     } catch (err) {
-        console.error('PayMongo Checkout Error:', err);
-        res.status(500).json({ error: 'Server error connecting to payment gateway.' });
+        console.error('Booking Payment Error:', err.message);
+        res.status(400).json({ error: err.message || 'Server error connecting to payment gateway.' });
     }
 });
 
