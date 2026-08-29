@@ -39,8 +39,8 @@ async function createParkBookingSession(bookingDetails, host) {
           show_description: true,
           show_line_items: true,
           pass_on_fees: true, 
-          // Changed 'maya' to 'paymaya' to fix the API validation error
-          payment_method_types: ['card', 'gcash', 'paymaya', 'qrph'],
+          // Limited to paymaya and qrph as requested
+          payment_method_types: ['paymaya', 'qrph'],
           line_items: [
             {
               amount: bookingDetails.totalPriceInCents, 
