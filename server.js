@@ -24,7 +24,8 @@ app.get('/blog-3', (req, res) => {
 
 async function createParkBookingSession(bookingDetails, host) {
   const paymongoSecretKey = process.env.PAYMONGO_SECRET_KEY;
-  const url = 'https://api.paymongo.com/v1/checkout_sessions';
+  // Updated to use the V2 Checkout Sessions endpoint required for pass_on_fees
+  const url = 'https://api.paymongo.com/v2/checkout_sessions';
   
   const options = {
     method: 'POST',
@@ -77,8 +78,8 @@ app.post('/api/create-checkout-session', async (req, res) => {
 
         const bookingDetails = {
             tourType: tour || 'Alicia Panoramic Park Tour',
-            guestCount: 1, // Keep quantity as 1 and scale amount to ensure pass_on_fees calculate correctly across line items
-            totalPriceInCents: baseAmount * guestCount,
+            guestCount: guestCount,
+            totalPriceInCents: baseAmount,
             bookingDate: bookingDate,
             customerName: customerName,
             customerEmail: customerEmail
