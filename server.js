@@ -24,7 +24,7 @@ app.get('/blog-3', (req, res) => {
 
 async function createParkBookingSession(bookingDetails, host) {
   const paymongoSecretKey = process.env.PAYMONGO_SECRET_KEY;
-  const url = 'https://api.paymongo.com/v2/checkout_sessions';
+  const url = 'https://api.paymongo.com/v1/checkout_sessions';
   
   const options = {
     method: 'POST',
@@ -36,11 +36,7 @@ async function createParkBookingSession(bookingDetails, host) {
     body: JSON.stringify({
       data: {
         attributes: {
-          show_description: true,
-          show_line_items: true,
-          pass_on_fees: true, 
-          // Limited to paymaya and qrph as requested
-          payment_method_types: ['paymaya', 'qrph'],
+          payment_method_types: ['card', 'gcash', 'paymaya', 'qrph'],
           line_items: [
             {
               amount: bookingDetails.totalPriceInCents, 
@@ -72,14 +68,14 @@ app.post('/api/create-checkout-session', async (req, res) => {
     try {
         const { tour, customerName, customerEmail, customerPhone, bookingDate, guests } = req.body;
         
-        // Base amount in cents (₱750.00 base per booking unit)
+        // Base amount in cents (₱750.00 base per guest)
         const baseAmount = 75000; 
         const guestCount = parseInt(guests) || 1;
 
         const bookingDetails = {
             tourType: tour || 'Alicia Panoramic Park Tour',
             guestCount: guestCount,
-            totalPriceInCents: baseAmount,
+            totalPriceInCents: baseAmount * guestCount,
             bookingDate: bookingDate,
             customerName: customerName,
             customerEmail: customerEmail
