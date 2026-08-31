@@ -5,213 +5,353 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TAPP Tours | Explore Bohol</title>
     <meta name="description" content="Discover Bohol. Book tours, adventures and unforgettable experiences in Bohol, Philippines with TAPP Tours.">
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        html { scroll-behavior: smooth; }
-        body { font-family: Arial, Helvetica, sans-serif; color: #222; line-height: 1.6; background: #fff; }
-        img, video { width: 100%; display: block; }
-        a { text-decoration: none; color: inherit; }
-        button, input, select { font: inherit; }
-        .container { width: min(1180px, 92%); margin: auto; }
-        .section { padding: 90px 0; }
-        .section-title { text-align: center; margin-bottom: 50px; }
-        .section-title span { display: block; text-transform: uppercase; letter-spacing: 3px; font-size: 13px; font-weight: 700; margin-bottom: 10px; }
-        .section-title h2 { font-size: 42px; line-height: 1.2; margin-bottom: 15px; }
-        .section-title p { max-width: 650px; margin: auto; color: #777; }
-        .btn { display: inline-block; padding: 14px 26px; border-radius: 8px; border: none; cursor: pointer; font-weight: 700; transition: .3s; text-align: center; }
-        .btn-primary { background: #f4a261; color: #fff; box-shadow: 0 4px 14px rgba(244,162,97,0.3); }
-        .btn-primary:hover { background: #e58b45; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(244,162,97,0.4); }
-        .btn-dark { background: #222; color: #fff; }
-        .btn-dark:hover { background: #000; }
-        .btn-outline { border: 1px solid #ddd; background: #fff; display: inline-block; border-radius: 8px; }
-        .btn-outline:hover { background: #f5f5f5; }
-
-        header { position: absolute; top: 0; left: 0; width: 100%; z-index: 1000; padding: 22px 0; color: #fff; }
-        .header-inner { display: flex; justify-content: space-between; align-items: center; }
-        .logo { font-size: 25px; font-weight: 800; letter-spacing: -1px; }
-        .logo span { color: #f4a261; }
-        nav { display: flex; gap: 28px; align-items: center; }
-        nav a { font-size: 14px; font-weight: 600; }
-        nav a:hover { color: #f4a261; }
-        .mobile-menu { display: none; font-size: 26px; cursor: pointer; }
-
-        .hero { min-height: 720px; background: linear-gradient(rgba(0,0,0,.45), rgba(0,0,0,.40)), url("https://ak-d.tripcdn.com/images/1mi6z224x8wbrdbvm0F75_Q90.jpg?auto=format&fit=crop&w=2000&q=85") center/cover; display: flex; align-items: center; position: relative; }
-        .hero-content { color: #fff; max-width: 720px; padding-top: 50px; }
-        .hero-content span { text-transform: uppercase; letter-spacing: 4px; font-size: 14px; font-weight: 700; }
-        .hero-content h1 { font-size: clamp(45px, 7vw, 78px); line-height: 1.05; margin: 15px 0; }
-        .hero-content p { font-size: 19px; max-width: 620px; margin-bottom: 30px; }
-        .hero-buttons { display: flex; gap: 12px; flex-wrap: wrap; }
-
-        /* Polished Booking Bar Styles */
-        .booking-wrapper { margin-top: -65px; position: relative; z-index: 10; }
-        .booking-box { background: #fff; border-radius: 16px; box-shadow: 0 16px 50px rgba(0,0,0,0.12); padding: 35px; border: 1px solid rgba(0,0,0,0.04); }
-        .booking-box h3 { margin-bottom: 22px; font-size: 24px; color: #1a1a1a; letter-spacing: -0.5px; }
-        .booking-grid { display: grid; grid-template-columns: 2fr 1.2fr 1.2fr 1.2fr auto; gap: 16px; align-items: end; }
-        .field label { display: block; font-size: 11px; font-weight: 700; margin-bottom: 8px; color: #555; text-transform: uppercase; letter-spacing: 0.8px; }
-        .field input, .field select { width: 100%; height: 52px; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 0 16px; background: #fafafa; font-size: 14px; color: #222; transition: all 0.2s ease; outline: none; }
-        .field input:focus, .field select:focus { border-color: #f4a261; background: #fff; box-shadow: 0 0 0 4px rgba(244,162,97,0.12); }
-        .booking-grid button.btn-primary { height: 52px; width: 100%; padding: 0 32px; border-radius: 10px; font-size: 15px; display: flex; align-items: center; justify-content: center; }
-
-        .tour-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; }
-        .tour-card { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 5px 25px rgba(0,0,0,.08); transition: .3s; display: flex; flex-direction: column; border: 1px solid #f0f0f0; }
-        .tour-card:hover { transform: translateY(-6px); box-shadow: 0 12px 35px rgba(0,0,0,.12); }
-        .tour-image { height: 240px; overflow: hidden; width: 100%; position: relative; }
-        .tour-image img { width: 100%; height: 100%; object-fit: cover; object-position: center; transition: .5s; }
-        .tour-card:hover .tour-image img { transform: scale(1.06); }
-        .tour-content { padding: 25px; display: flex; flex-direction: column; flex-grow: 1; }
-        .tour-meta { display: flex; justify-content: space-between; color: #888; font-size: 13px; margin-bottom: 10px; }
-        .tour-content h3 { font-size: 22px; margin-bottom: 10px; }
-        .tour-content p { color: #777; margin-bottom: 18px; flex-grow: 1; }
-        .tour-bottom { display: flex; justify-content: space-between; align-items: center; margin-top: auto; }
-        .price { font-size: 18px; font-weight: 800; }
-        .price small { font-size: 11px; color: #888; font-weight: normal; }
-        .status-soon { color: #d90429; font-size: 18px; font-weight: 700; }
-
-        .destinations { background: #f7f7f7; }
-        .destination-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
-        .destination-card { height: 330px; border-radius: 12px; overflow: hidden; position: relative; color: #fff; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
-        .destination-card img { height: 100%; width: 100%; object-fit: cover; transition: .5s; }
-        .destination-card:hover img { transform: scale(1.07); }
-        .destination-overlay { position: absolute; inset: 0; background: linear-gradient(transparent 40%, rgba(0,0,0,.75)); display: flex; flex-direction: column; justify-content: flex-end; padding: 22px; }
-        .destination-overlay h3 { font-size: 25px; }
-
-        .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
-        .about-image { position: relative; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        .about-image video { height: 520px; width: 100%; object-fit: cover; display: block; border-radius: 12px; }
-        .about-content span { text-transform: uppercase; letter-spacing: 3px; font-size: 13px; font-weight: 700; }
-        .about-content h2 { font-size: 43px; line-height: 1.15; margin: 15px 0; }
-        .about-content p { color: #777; margin-bottom: 20px; }
-
-        .why-us { background: #f7f7f7; }
-        .features { display: grid; grid-template-columns: repeat(4, 1fr); gap: 25px; }
-        .feature { text-align: center; padding: 25px; background: #fff; border-radius: 12px; border: 1px solid #eee; }
-        .feature-icon { font-size: 42px; margin-bottom: 15px; }
-        .feature h3 { margin-bottom: 8px; }
-        .feature p { color: #777; font-size: 14px; }
-
-        .testimonial-section { background: linear-gradient(rgba(0,0,0,.65), rgba(0,0,0,.65)), url("https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=2000&q=85") center/cover; color: #fff; }
-        .testimonial { max-width: 800px; margin: auto; text-align: center; }
-        .stars { font-size: 25px; margin-bottom: 20px; }
-        .testimonial blockquote { font-size: 26px; line-height: 1.5; margin-bottom: 25px; }
-        .testimonial-author { font-weight: 700; }
-
-        .things-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
-        .thing { border: 1px solid #eee; padding: 25px; border-radius: 12px; text-align: center; transition: .3s; background: #fff; }
-        .thing:hover { box-shadow: 0 10px 25px rgba(0,0,0,.08); transform: translateY(-4px); }
-        .thing-icon { font-size: 40px; margin-bottom: 12px; }
-
-        .blog-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 25px; }
-        .blog-card { border: 1px solid #eee; border-radius: 12px; overflow: hidden; background: #fff; display: flex; flex-direction: column; }
-        .blog-image { height: 220px; }
-        .blog-image img { height: 100%; width: 100%; object-fit: cover; }
-        .blog-content { padding: 23px; display: flex; flex-direction: column; flex-grow: 1; }
-        .blog-content small { color: #f4a261; font-weight: 700; }
-        .blog-content h3 { margin: 8px 0 10px; font-size: 21px; }
-        .blog-content p { color: #777; font-size: 14px; margin-bottom: 15px; flex-grow: 1; }
-
-        .cta { background: linear-gradient(rgba(0,0,0,.55), rgba(0,0,0,.55)), url("https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=2000&q=85") center/cover; color: #fff; text-align: center; padding: 120px 0; }
-        .cta h2 { font-size: 50px; margin-bottom: 15px; }
-        .cta p { max-width: 650px; margin: 0 auto 25px; font-size: 18px; }
-
-        footer { background: #171717; color: #fff; padding: 70px 0 25px; }
-        .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 50px; }
-        .footer-column h3 { margin-bottom: 20px; }
-        .footer-column p { color: #aaa; }
-        .footer-column ul { list-style: none; }
-        .footer-column li { margin-bottom: 10px; color: #aaa; }
-        .footer-column li a { color: #aaa; transition: .3s; }
-        .footer-column li a:hover { color: #fff; }
-        .copyright { border-top: 1px solid #333; margin-top: 50px; padding-top: 20px; color: #888; text-align: center; font-size: 13px; }
-
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.65); z-index: 2000; align-items: center; justify-content: center; padding: 20px; }
-        .modal.active { display: flex; }
-        .modal-content { background: #fff; width: min(600px, 100%); border-radius: 16px; padding: 35px; position: relative; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
-        .modal-close { position: absolute; right: 20px; top: 15px; font-size: 25px; cursor: pointer; color: #666; }
-        .modal-close:hover { color: #000; }
-        .modal-content h2 { margin-bottom: 20px; }
-        .modal-form { display: grid; gap: 16px; }
-        .modal-form input, .modal-form select { width: 100%; height: 50px; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 0 16px; font-size: 14px; background: #fafafa; outline: none; }
-        .modal-form input:focus, .modal-form select:focus { border-color: #f4a261; background: #fff; box-shadow: 0 0 0 4px rgba(244,162,97,0.12); }
-        .modal-form button.btn-primary { height: 52px; border-radius: 10px; margin-top: 5px; }
-
-        .notification-banner { display: none; position: fixed; top: 20px; right: 20px; background: #222; color: #fff; padding: 15px 25px; border-radius: 8px; z-index: 3000; box-shadow: 0 5px 20px rgba(0,0,0,0.2); }
-        .notification-banner.active { display: block; }
-
-        @media(max-width: 1100px) {
-            .booking-grid { grid-template-columns: 1fr 1fr; }
-        }
-        @media(max-width: 1000px) {
-            nav { display: none; position: absolute; top: 75px; right: 4%; background: #fff; color: #222; padding: 20px; flex-direction: column; width: 230px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,.15); }
-            nav.active { display: flex; }
-            .mobile-menu { display: block; }
-            .destination-grid, .things-grid, .features, .blog-grid { grid-template-columns: repeat(2, 1fr); }
-        }
-
-        @media(max-width: 700px) {
-            .section { padding: 65px 0; }
-            .section-title h2 { font-size: 32px; }
-            .hero { min-height: 650px; }
-            .hero-content h1 { font-size: 48px; }
-            .booking-grid, .tour-grid, .about-grid, .blog-grid, .footer-grid { grid-template-columns: 1fr; }
-            .destination-grid, .things-grid, .features { grid-template-columns: 1fr; }
-            .gallery-grid { grid-template-columns: repeat(2, 1fr); }
-            .cta h2 { font-size: 36px; }
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
     </style>
 </head>
-<body>
+<body class="bg-stone-50 text-stone-800 leading-relaxed">
 
-<div id="notificationBanner" class="notification-banner">Notification message here</div>
+<div id="notificationBanner" class="hidden fixed top-6 right-6 bg-stone-900 text-white px-6 py-3.5 rounded-2xl shadow-xl z-50 text-sm font-medium border border-stone-800 transition-all">Notification message here</div>
 
-<header>
-    <div class="container header-inner">
-        <a href="#" class="logo">TAPP<span>TOURS</span></a>
-        <nav id="navigation">
-            <a href="#home">Home</a>
-            <a href="#tours">Tours</a>
-            <a href="#destinations">Destinations</a>
-            <a href="#things">Things To Do</a>
-            <a href="#blog">Travel Guide</a>
-            <a href="#booking" class="btn btn-primary">Book Now</a>
+<header class="absolute top-0 left-0 w-full z-40 px-4 sm:px-8 py-5 text-white">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+        <a href="#" class="text-2xl font-extrabold tracking-tight">TAPP<span class="text-emerald-400">TOURS</span></a>
+        <nav id="navigation" class="hidden md:flex gap-8 items-center text-sm font-semibold">
+            <a href="#home" class="hover:text-emerald-400 transition-colors">Home</a>
+            <a href="#tours" class="hover:text-emerald-400 transition-colors">Tours</a>
+            <a href="#destinations" class="hover:text-emerald-400 transition-colors">Destinations</a>
+            <a href="#things" class="hover:text-emerald-400 transition-colors">Things To Do</a>
+            <a href="#blog" class="hover:text-emerald-400 transition-colors">Travel Guide</a>
+            <a href="#booking" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-full shadow-md transition-all">Book Now</a>
         </nav>
-        <div class="mobile-menu" onclick="toggleMenu()">☰</div>
+        <button class="md:hidden text-2xl" onclick="toggleMenu()">☰</button>
     </div>
 </header>
 
-<section class="hero" id="home">
-    <div class="container">
-        <div class="hero-content">
-            <span>Welcome to Bohol</span>
-            <h1>Discover Bohol</h1>
-            <p>Explore breathtaking landscapes, hidden destinations and unforgettable experiences in Bohol.</p>
-            <div class="hero-buttons">
-                <a href="#tours" class="btn btn-primary">Explore Tours</a>
+<section id="home" class="relative min-h-[750px] bg-stone-900 flex items-center justify-center text-center px-4 overflow-hidden">
+    <div class="absolute inset-0 z-0 opacity-45 bg-cover bg-center" style="background-image: url('diving.webp')"></div>
+    <div class="absolute inset-0 bg-gradient-to-t from-stone-950/80 via-transparent to-stone-900/40 z-0"></div>
+    
+    <div class="relative z-10 max-w-3xl mx-auto text-white mt-12">
+        <span class="text-xs font-bold uppercase tracking-widest bg-emerald-600/80 px-3.5 py-1.5 rounded-full backdrop-blur-sm border border-emerald-500/30">Welcome to Bohol, Philippines</span>
+        <h1 class="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight mt-4 mb-6 leading-tight">Discover Bohol With TAPP Tours</h1>
+        <p class="text-lg sm:text-xl text-stone-200 mb-8 max-w-2xl mx-auto font-light">Explore breathtaking mountain peaks, crystal-clear island waters, and unforgettable outdoor adventures with certified local guides.</p>
+        <div class="flex justify-center gap-4 flex-wrap">
+            <a href="#tours" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-8 py-4 rounded-full shadow-lg transition-all text-sm tracking-wide">Explore Tours</a>
+            <a href="terms.html" class="bg-white/10 hover:bg-white/20 text-white font-semibold px-8 py-4 rounded-full backdrop-blur-md transition-all text-sm border border-white/20">Read Terms & Conditions</a>
+        </div>
+    </div>
+</section>
+
+<!-- BOOKING WIDGET BAR -->
+<section class="max-w-6xl mx-auto px-4 -mt-24 relative z-30 mb-20" id="booking">
+    <div class="bg-white rounded-3xl shadow-xl border border-stone-200/80 p-6 sm:p-10">
+        <h3 class="text-2xl font-bold text-stone-900 mb-6 tracking-tight">Find Your Bohol Experience</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+            <div class="space-y-1.5">
+                <label class="block text-xs font-bold uppercase tracking-wider text-stone-500">Tour / Experience</label>
+                <select id="tourSelect" onchange="updateGuestOptions()" class="w-full h-14 bg-stone-50 border border-stone-200 rounded-2xl px-4 text-sm font-medium text-stone-800 outline-none focus:ring-2 focus:ring-emerald-600">
+                    <option value="">Select a tour</option>
+                    <option value="Alicia Panoramic Park Tour">Alicia Panoramic Park Tour</option>
+                    <option value="Bohol Island Hopping">Bohol Island Hopping</option>
+                    <option value="Bohol Countryside Tour" disabled>Bohol Countryside Tour (Soon)</option>
+                </select>
+            </div>
+            <div class="space-y-1.5">
+                <label class="block text-xs font-bold uppercase tracking-wider text-stone-500">Date</label>
+                <input type="date" id="bookingDate" class="w-full h-14 bg-stone-50 border border-stone-200 rounded-2xl px-4 text-sm font-medium text-stone-800 outline-none focus:ring-2 focus:ring-emerald-600">
+            </div>
+            <div class="space-y-1.5">
+                <label class="block text-xs font-bold uppercase tracking-wider text-stone-500">Time Slot</label>
+                <select id="tourTimeSlot" class="w-full h-14 bg-stone-50 border border-stone-200 rounded-2xl px-4 text-sm font-medium text-stone-800 outline-none focus:ring-2 focus:ring-emerald-600">
+                    <option value="04:00 AM">04:00 AM (Sunrise)</option>
+                    <option value="05:00 AM">05:00 AM</option>
+                    <option value="06:00 AM">06:00 AM</option>
+                    <option value="07:00 AM">07:00 AM</option>
+                    <option value="08:00 AM">08:00 AM</option>
+                    <option value="09:00 AM">09:00 AM</option>
+                    <option value="10:00 AM">10:00 AM</option>
+                    <option value="11:00 AM">11:00 AM</option>
+                    <option value="12:00 PM">12:00 PM (Noon)</option>
+                    <option value="01:00 PM">01:00 PM</option>
+                    <option value="02:00 PM">02:00 PM</option>
+                    <option value="03:00 PM">03:00 PM</option>
+                    <option value="04:00 PM">04:00 PM</option>
+                    <option value="05:00 PM">05:00 PM (Sunset)</option>
+                    <option value="06:00 PM">06:00 PM</option>
+                    <option value="07:00 PM">07:00 PM</option>
+                    <option value="08:00 PM">08:00 PM</option>
+                </select>
+            </div>
+            <div class="space-y-1.5">
+                <label class="block text-xs font-bold uppercase tracking-wider text-stone-500">Guests / Boat Size</label>
+                <select id="guestSelect" class="w-full h-14 bg-stone-50 border border-stone-200 rounded-2xl px-4 text-sm font-medium text-stone-800 outline-none focus:ring-2 focus:ring-emerald-600">
+                    <option value="1">1 Guest (₱750)</option>
+                    <option value="2">2 Guests (₱750)</option>
+                    <option value="3">3 Guests (₱750)</option>
+                    <option value="4">4 Guests (₱750)</option>
+                    <option value="5">5 Guests (₱750)</option>
+                </select>
+            </div>
+            <div>
+                <button onclick="searchBooking()" class="w-full h-14 bg-emerald-800 hover:bg-emerald-900 text-white font-bold rounded-2xl shadow-md transition-all text-sm tracking-wide">Search & Book</button>
             </div>
         </div>
     </div>
 </section>
 
-<section class="booking-wrapper" id="booking">
-    <div class="container">
-        <div class="booking-box">
-            <h3>Find Your Bohol Experience</h3>
-            <div class="booking-grid">
-                <div class="field">
-                    <label>TOUR / EXPERIENCE</label>
-                    <select id="tourSelect">
-                        <option value="">Select a tour</option>
-                        <option value="Alicia Panoramic Park Tour">Alicia Panoramic Park Tour</option>
-                        <option value="Bohol Island Hopping">Bohol Island Hopping</option>
-                        <option value="Bohol Countryside Tour" disabled>Bohol Countryside Tour (Soon)</option>
-                    </select>
+<!-- TOURS SECTION -->
+<section class="max-w-7xl mx-auto px-4 sm:px-6 py-12" id="tours">
+    <div class="text-center max-w-2xl mx-auto mb-16">
+        <span class="text-xs font-bold uppercase tracking-widest text-emerald-700 bg-emerald-50 px-3.5 py-1.5 rounded-full border border-emerald-200">Popular Experiences</span>
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-stone-900 mt-3 mb-4">Explore Bohol Tours</h2>
+        <p class="text-stone-600 text-sm sm:text-base">Discover the most sought-after mountain hikes, island hopping boat charters, and countryside adventures around Bohol.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        
+        <!-- Countryside Tour -->
+        <article class="bg-white rounded-3xl overflow-hidden shadow-sm border border-stone-200/80 flex flex-col transition-all hover:shadow-lg">
+            <div class="h-60 overflow-hidden relative">
+                <img src="chocolate-hills.jpg" alt="Bohol Countryside Tour" class="w-full h-full object-cover transition-transform duration-500 hover:scale-105" onerror="this.src='https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=1000&q=80'">
+            </div>
+            <div class="p-6 sm:p-8 flex flex-col flex-grow">
+                <div class="flex justify-between items-center text-xs font-semibold text-stone-500 mb-3">
+                    <span>6 Hours</span>
+                    <span class="text-amber-500 font-bold">⭐ 4.9</span>
                 </div>
-                <div class="field">
-                    <label>DATE</label>
-                    <input type="date" id="bookingDate">
+                <h3 class="text-2xl font-bold text-stone-900 mb-3">Bohol Countryside Tour</h3>
+                <p class="text-stone-600 text-sm mb-6 flex-grow">Experience Chocolate Hills, the historic countryside, and Bohol's most famous cultural attractions.</p>
+                <div class="flex justify-between items-center mt-auto pt-4 border-t border-stone-100">
+                    <span class="text-rose-600 font-extrabold text-lg">Available Soon</span>
+                    <button disabled class="bg-stone-100 text-stone-400 font-bold px-6 py-2.5 rounded-xl text-xs cursor-not-allowed">Soon</button>
                 </div>
-                <div class="field">
-                    <label>TIME SLOT</label>
-                    <select id="tourTimeSlot">
+            </div>
+        </article>
+
+        <!-- Alicia Panoramic Park Tour -->
+        <article class="bg-white rounded-3xl overflow-hidden shadow-sm border border-stone-200/80 flex flex-col transition-all hover:shadow-lg">
+            <div class="h-60 overflow-hidden relative">
+                <img src="alicia-panoramic-park-bohol.webp" alt="Alicia Panoramic Park Tour" class="w-full h-full object-cover transition-transform duration-500 hover:scale-105" onerror="this.src='https://images.unsplash.com/photo-1518509562904-e7ef99cdcc86?auto=format&fit=crop&w=1000&q=80'">
+            </div>
+            <div class="p-6 sm:p-8 flex flex-col flex-grow">
+                <div class="flex justify-between items-center text-xs font-semibold text-stone-500 mb-3">
+                    <span>4 Hours</span>
+                    <span class="text-amber-500 font-bold">⭐ 5.0</span>
+                </div>
+                <h3 class="text-2xl font-bold text-stone-900 mb-3">Alicia Panoramic Park Tour</h3>
+                <p class="text-stone-600 text-sm mb-4">Hike through beautiful mountain landscapes and enjoy spectacular panoramic views with certified local guides.</p>
+                <p class="text-xs text-stone-500 mb-6 bg-stone-50 p-3 rounded-xl border border-stone-200/60 leading-relaxed">
+                    Upon successful payment, an SMS or email will be sent and your local guide in Alicia, Bohol will contact you for further details and meeting arrangement. Read our <a href="blog-3.html" class="text-emerald-700 font-bold underline">Guide To Alicia Panoramic Park Tour</a>.
+                </p>
+                <div class="flex justify-between items-center mt-auto pt-4 border-t border-stone-100">
+                    <div>
+                        <span class="text-xl font-extrabold text-stone-900">₱750</span>
+                        <span class="text-xs text-stone-500 block">/ group (max 5)</span>
+                    </div>
+                    <button onclick="openBooking('Alicia Panoramic Park Tour')" class="bg-emerald-800 hover:bg-emerald-900 text-white font-bold px-6 py-2.5 rounded-xl text-xs shadow-md transition-all">Book Now</button>
+                </div>
+            </div>
+        </article>
+
+        <!-- Bohol Island Hopping -->
+        <article class="bg-white rounded-3xl overflow-hidden shadow-sm border border-stone-200/80 flex flex-col transition-all hover:shadow-lg">
+            <div class="h-60 overflow-hidden relative">
+                <img src="diving.webp" alt="Bohol Island Hopping" class="w-full h-full object-cover transition-transform duration-500 hover:scale-105" onerror="this.src='https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1000&q=80'">
+            </div>
+            <div class="p-6 sm:p-8 flex flex-col flex-grow">
+                <div class="flex justify-between items-center text-xs font-semibold text-stone-500 mb-3">
+                    <span>5 Hours</span>
+                    <span class="text-amber-500 font-bold">⭐ 4.8</span>
+                </div>
+                <h3 class="text-2xl font-bold text-stone-900 mb-3">Bohol Island Hopping</h3>
+                <p class="text-stone-600 text-sm mb-4">Explore beautiful islands, dolphin watching, Balicasag snorkeling, and Virgin Island sand bars with small, medium, or large boats.</p>
+                <p class="text-xs text-stone-500 mb-6 bg-stone-50 p-3 rounded-xl border border-stone-200/60 leading-relaxed">
+                    Upon successful payment, an email or SMS message will be sent for further instructions and meet-up arrangements with the local boat provider in Panglao, Bohol. Read our <a href="blog-4.html" class="text-emerald-700 font-bold underline">Bohol Island Hopping Adventure Blog</a>.
+                </p>
+                <div class="flex justify-between items-center mt-auto pt-4 border-t border-stone-100">
+                    <div>
+                        <span class="text-xl font-extrabold text-stone-900">₱3,500+</span>
+                        <span class="text-xs text-stone-500 block">/ boat charter</span>
+                    </div>
+                    <button onclick="openBooking('Bohol Island Hopping')" class="bg-emerald-800 hover:bg-emerald-900 text-white font-bold px-6 py-2.5 rounded-xl text-xs shadow-md transition-all">Book Now</button>
+                </div>
+            </div>
+        </article>
+
+    </div>
+</section>
+
+<!-- DESTINATIONS -->
+<section class="bg-stone-100/70 py-20 border-y border-stone-200/60" id="destinations">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+        <div class="text-center max-w-2xl mx-auto mb-16">
+            <span class="text-xs font-bold uppercase tracking-widest text-emerald-700 bg-emerald-50 px-3.5 py-1.5 rounded-full border border-emerald-200">Explore the Island</span>
+            <h2 class="text-3xl sm:text-4xl font-extrabold text-stone-900 mt-3 mb-4">Discover Bohol</h2>
+            <p class="text-stone-600 text-sm sm:text-base">From pristine beaches and mountain ridges to historic towns and breathtaking natural sanctuaries.</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <a href="#" class="relative h-80 rounded-3xl overflow-hidden group shadow-md">
+                <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1000&q=80" alt="Panglao" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                <div class="absolute inset-0 bg-gradient-to-t from-stone-950/80 via-stone-950/20 to-transparent flex flex-col justify-end p-6 text-white">
+                    <h3 class="text-2xl font-bold">Panglao</h3>
+                    <p class="text-xs text-stone-300 mt-1">Beaches & Island Adventures</p>
+                </div>
+            </a>
+            <a href="#" class="relative h-80 rounded-3xl overflow-hidden group shadow-md">
+                <img src="alicia-panoramic-park-bohol.webp" alt="Alicia" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" onerror="this.src='https://images.unsplash.com/photo-1518509562904-e7ef99cdcc86?auto=format&fit=crop&w=1000&q=80'">
+                <div class="absolute inset-0 bg-gradient-to-t from-stone-950/80 via-stone-950/20 to-transparent flex flex-col justify-end p-6 text-white">
+                    <h3 class="text-2xl font-bold">Alicia</h3>
+                    <p class="text-xs text-stone-300 mt-1">Mountains & Panoramic Views</p>
+                </div>
+            </a>
+            <a href="#" class="relative h-80 rounded-3xl overflow-hidden group shadow-md">
+                <img src="anda.webp" alt="Anda" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" onerror="this.src='https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1000&q=80'">
+                <div class="absolute inset-0 bg-gradient-to-t from-stone-950/80 via-stone-950/20 to-transparent flex flex-col justify-end p-6 text-white">
+                    <h3 class="text-2xl font-bold">Anda</h3>
+                    <p class="text-xs text-stone-300 mt-1">Hidden Beaches & Nature</p>
+                </div>
+            </a>
+            <a href="#" class="relative h-80 rounded-3xl overflow-hidden group shadow-md">
+                <img src="loboc.jpg" alt="Loboc" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" onerror="this.src='https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1000&q=80'">
+                <div class="absolute inset-0 bg-gradient-to-t from-stone-950/80 via-stone-950/20 to-transparent flex flex-col justify-end p-6 text-white">
+                    <h3 class="text-2xl font-bold">Loboc</h3>
+                    <p class="text-xs text-stone-300 mt-1">River & Countryside</p>
+                </div>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- TRAVEL GUIDE / BLOGS -->
+<section class="max-w-7xl mx-auto px-4 sm:px-6 py-20" id="blog">
+    <div class="text-center max-w-2xl mx-auto mb-16">
+        <span class="text-xs font-bold uppercase tracking-widest text-emerald-700 bg-emerald-50 px-3.5 py-1.5 rounded-full border border-emerald-200">Bohol Travel Guide</span>
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-stone-900 mt-3 mb-4">Plan Your Trip</h2>
+        <p class="text-stone-600 text-sm sm:text-base">Helpful travel guides, island tips, and recommendations for your Bohol itinerary.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <article class="bg-white rounded-3xl overflow-hidden shadow-sm border border-stone-200/80 flex flex-col">
+            <div class="h-48 overflow-hidden"><img src="https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1000&q=80" class="w-full h-full object-cover"></div>
+            <div class="p-6 flex flex-col flex-grow">
+                <span class="text-xs font-bold text-emerald-700 uppercase">Bohol Travel</span>
+                <h3 class="text-xl font-bold text-stone-900 my-2">10 Best Places To Visit In Bohol</h3>
+                <p class="text-stone-600 text-xs mb-6 flex-grow">Discover destinations you shouldn't miss during your Bohol trip.</p>
+                <a href="blog-1.html" class="inline-block bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold px-5 py-2.5 rounded-xl text-xs text-center transition-all">Read More</a>
+            </div>
+        </article>
+        <article class="bg-white rounded-3xl overflow-hidden shadow-sm border border-stone-200/80 flex flex-col">
+            <div class="h-48 overflow-hidden"><img src="https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1000&q=80" class="w-full h-full object-cover"></div>
+            <div class="p-6 flex flex-col flex-grow">
+                <span class="text-xs font-bold text-emerald-700 uppercase">Travel Guide</span>
+                <h3 class="text-xl font-bold text-stone-900 my-2">Best Time To Visit Bohol</h3>
+                <p class="text-stone-600 text-xs mb-6 flex-grow">Learn when to visit Bohol for the best weather and experiences.</p>
+                <a href="blog-2.html" class="inline-block bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold px-5 py-2.5 rounded-xl text-xs text-center transition-all">Read More</a>
+            </div>
+        </article>
+        <article class="bg-white rounded-3xl overflow-hidden shadow-sm border border-stone-200/80 flex flex-col">
+            <div class="h-48 overflow-hidden"><img src="alicia-panoramic-park-bohol.webp" class="w-full h-full object-cover" onerror="this.src='https://images.unsplash.com/photo-1518509562904-e7ef99cdcc86?auto=format&fit=crop&w=1000&q=80'"></div>
+            <div class="p-6 flex flex-col flex-grow">
+                <span class="text-xs font-bold text-emerald-700 uppercase">Adventure</span>
+                <h3 class="text-xl font-bold text-stone-900 my-2">Guide To Alicia Panoramic Park Tour</h3>
+                <p class="text-stone-600 text-xs mb-6 flex-grow">Everything you need to know before visiting Alicia ridges.</p>
+                <a href="blog-3.html" class="inline-block bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold px-5 py-2.5 rounded-xl text-xs text-center transition-all">Read More</a>
+            </div>
+        </article>
+        <article class="bg-white rounded-3xl overflow-hidden shadow-sm border border-stone-200/80 flex flex-col">
+            <div class="h-48 overflow-hidden"><img src="diving.webp" class="w-full h-full object-cover" onerror="this.src='https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1000&q=80'"></div>
+            <div class="p-6 flex flex-col flex-grow">
+                <span class="text-xs font-bold text-emerald-700 uppercase">Island Guide</span>
+                <h3 class="text-xl font-bold text-stone-900 my-2">Bohol Island Hopping Adventure</h3>
+                <p class="text-stone-600 text-xs mb-6 flex-grow">Dolphins, Balicasag turtles, and Virgin Island sand bars.</p>
+                <a href="blog-4.html" class="inline-block bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold px-5 py-2.5 rounded-xl text-xs text-center transition-all">Read More</a>
+            </div>
+        </article>
+    </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="bg-stone-950 text-stone-400 py-16 border-t border-stone-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 grid grid-cols-1 md:grid-cols-4 gap-10">
+        <div>
+            <h3 class="text-white text-xl font-extrabold mb-4">TAPP<span class="text-emerald-400">TOURS</span></h3>
+            <p class="text-stone-400 text-sm">Discover Bohol and experience the island beyond the ordinary with certified local guides.</p>
+        </div>
+        <div>
+            <h4 class="text-white font-bold text-sm mb-4">Explore</h4>
+            <ul class="space-y-2 text-sm">
+                <li><a href="#destinations" class="hover:text-white transition-colors">Destinations</a></li>
+                <li><a href="#tours" class="hover:text-white transition-colors">Tours</a></li>
+                <li><a href="#blog" class="hover:text-white transition-colors">Travel Guide</a></li>
+            </ul>
+        </div>
+        <div>
+            <h4 class="text-white font-bold text-sm mb-4">Legal & Support</h4>
+            <ul class="space-y-2 text-sm">
+                <li><a href="terms.html" class="hover:text-white transition-colors underline font-medium text-emerald-400">Terms & Conditions</a></li>
+                <li><a href="terms.html#cancellation" class="hover:text-white transition-colors">Cancellation Policy</a></li>
+                <li><a href="terms.html#liability" class="hover:text-white transition-colors">Accident Waiver</a></li>
+            </ul>
+        </div>
+        <div>
+            <h4 class="text-white font-bold text-sm mb-4">Contact Us</h4>
+            <ul class="space-y-2 text-sm">
+                <li>📍 Bohol, Philippines</li>
+                <li>📧 <a href="mailto:support@tapptours.com" class="hover:text-white underline">support@tapptours.com</a></li>
+                <li>🇵🇭 <a href="tel:+639912259429" class="hover:text-white underline">+63 991 225 9429</a></li>
+            </ul>
+        </div>
+    </div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 pt-12 mt-12 border-t border-stone-800 text-center text-xs text-stone-500 flex flex-col sm:flex-row justify-between items-center gap-4">
+        <p>&copy; 2026 TAPP Tours. All rights reserved.</p>
+        <p><a href="terms.html" class="hover:underline text-stone-400">Terms & Conditions apply to all bookings.</a></p>
+    </div>
+</footer>
+
+<!-- BOOKING MODAL WITH TERMS ACCEPTANCE -->
+<div id="bookingModal" class="hidden fixed inset-0 bg-stone-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-8 relative shadow-2xl border border-stone-200 my-8">
+        <button onclick="closeBooking()" class="absolute top-6 right-6 text-stone-400 hover:text-stone-900 text-2xl font-bold">×</button>
+        
+        <span class="text-xs font-bold uppercase tracking-widest text-emerald-700 bg-emerald-50 px-3.5 py-1.5 rounded-full border border-emerald-200">Secure Reservation</span>
+        <h2 class="text-2xl font-extrabold text-stone-900 mt-3 mb-6">Book Your Tour</h2>
+
+        <form id="checkoutForm" onsubmit="submitBooking(event)" class="space-y-4">
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-stone-600 mb-1">Selected Tour</label>
+                <input type="text" id="modalTour" readonly class="w-full h-12 bg-stone-100 border border-stone-200 rounded-xl px-4 text-sm font-semibold text-stone-800 outline-none cursor-not-allowed">
+            </div>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-stone-600 mb-1">Full Name</label>
+                    <input type="text" id="modalName" placeholder="Juan Dela Cruz" required class="w-full h-12 bg-stone-50 border border-stone-200 rounded-xl px-4 text-sm outline-none focus:ring-2 focus:ring-emerald-600">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-stone-600 mb-1">Email Address</label>
+                    <input type="email" id="modalEmail" placeholder="juan@example.com" required class="w-full h-12 bg-stone-50 border border-stone-200 rounded-xl px-4 text-sm outline-none focus:ring-2 focus:ring-emerald-600">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-stone-600 mb-1">Phone Number</label>
+                    <input type="tel" id="modalPhone" placeholder="09171234567" required class="w-full h-12 bg-stone-50 border border-stone-200 rounded-xl px-4 text-sm outline-none focus:ring-2 focus:ring-emerald-600">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-stone-600 mb-1">Tour Date</label>
+                    <input type="date" id="modalBookingDate" required class="w-full h-12 bg-stone-50 border border-stone-200 rounded-xl px-4 text-sm outline-none focus:ring-2 focus:ring-emerald-600">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-stone-600 mb-1">Time Slot</label>
+                    <select id="modalTimeSlot" required class="w-full h-12 bg-stone-50 border border-stone-200 rounded-xl px-4 text-sm outline-none focus:ring-2 focus:ring-emerald-600">
                         <option value="04:00 AM">04:00 AM (Sunrise)</option>
                         <option value="05:00 AM">05:00 AM</option>
                         <option value="06:00 AM">06:00 AM</option>
@@ -231,386 +371,129 @@
                         <option value="08:00 PM">08:00 PM</option>
                     </select>
                 </div>
-                <div class="field">
-                    <label>GUESTS / BOAT SIZE</label>
-                    <select id="guestSelect">
-                        <option value="1">1-5 Guests (Small Boat - ₱3,500)</option>
-                        <option value="6">6-10 Guests (Small Boat - ₱4,000)</option>
-                        <option value="11">11-14 Guests (Small Boat - ₱4,500)</option>
-                        <option value="20">Up to 20 Guests (Medium Boat - ₱8,500)</option>
-                        <option value="26">Up to 26 Guests (Big Boat - ₱10,500)</option>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-stone-600 mb-1">Guests / Boat Size</label>
+                    <select id="modalGuests" required class="w-full h-12 bg-stone-50 border border-stone-200 rounded-xl px-4 text-sm outline-none focus:ring-2 focus:ring-emerald-600">
+                        <!-- Populated dynamically -->
                     </select>
                 </div>
-                <div>
-                    <button class="btn btn-primary" onclick="searchBooking()">Search</button>
-                </div>
             </div>
-        </div>
-    </div>
-</section>
 
-<section class="section" id="tours">
-    <div class="container">
-        <div class="section-title">
-            <span>Popular Experiences</span>
-            <h2>Explore Bohol Tours</h2>
-            <p>Discover the most popular places and experiences around the island.</p>
-        </div>
-        <div class="tour-grid">
-            <article class="tour-card">
-                <div class="tour-image">
-                    <img src="chocolate-hills.jpg" alt="Bohol Countryside Tour" onerror="this.src='https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=1000&q=80'">
-                </div>
-                <div class="tour-content">
-                    <div class="tour-meta">
-                        <span>6 Hours</span>
-                        <span>⭐ 4.9</span>
-                    </div>
-                    <h3>Bohol Countryside Tour</h3>
-                    <p>Experience Chocolate Hills, the countryside and Bohol's famous attractions.</p>
-                    <div class="tour-bottom">
-                        <div class="status-soon">Available Soon</div>
-                        <button class="btn btn-outline" disabled style="opacity: 0.6; cursor: not-allowed;">Available Soon</button>
-                    </div>
-                </div>
-            </article>
-
-            <article class="tour-card">
-                <div class="tour-image">
-                    <img src="alicia-panoramic-park-bohol.webp" alt="Alicia Panoramic Park Tour" onerror="this.src='https://images.unsplash.com/photo-1518509562904-e7ef99cdcc86?auto=format&fit=crop&w=1000&q=80'">
-                </div>
-                <div class="tour-content">
-                    <div class="tour-meta">
-                        <span>4 Hours</span>
-                        <span>⭐ 5.0</span>
-                    </div>
-                    <h3>Alicia Panoramic Park Tour</h3>
-                    <p>Hike through beautiful mountain landscapes and enjoy spectacular panoramic views.</p>
-                    <p style="font-size: 13px; color: #666; margin-top: 10px; line-height: 1.5;">
-                        Upon successful payment, an SMS or email will be sent and your local guide in Alicia, Bohol will contact you for further details and meeting arrangement. To know more about the tour, please read our blog at <a href="blog-3.html" style="color: #f4a261; font-weight: 700; text-decoration: underline;">Guide To Alicia Panoramic Park Tour</a>.
-                    </p>
-                    <div class="tour-bottom">
-                        <div class="price">₱750 <small>/ group (max 5)</small></div>
-                        <button class="btn btn-outline" onclick="openBooking('Alicia Panoramic Park Tour')">Book</button>
-                    </div>
-                </div>
-            </article>
-
-            <article class="tour-card">
-                <div class="tour-image">
-                    <img src="diving.webp" alt="Bohol Island Hopping" onerror="this.src='https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1000&q=80'">
-                </div>
-                <div class="tour-content">
-                    <div class="tour-meta">
-                        <span>5 Hours</span>
-                        <span>⭐ 4.8</span>
-                    </div>
-                    <h3>Bohol Island Hopping</h3>
-                    <p>Explore beautiful islands, snorkeling spots and crystal-clear waters with small, medium, or large boats.</p>
-                    <p style="font-size: 13px; color: #666; margin-top: 10px; line-height: 1.5;">
-                        Upon successful payment, an email or SMS message will be sent for further instructions and meet-up arrangements with the local boat provider in Panglao, Bohol. To know more about the packages, please read our blog at <a href="blog-4.html" style="color: #f4a261; font-weight: 700; text-decoration: underline;">Bohol Island Hopping Adventure</a>.
-                    </p>
-                    <div class="tour-bottom">
-                        <div class="price">₱3,500+ <small>/ boat charter</small></div>
-                        <button class="btn btn-outline" onclick="openBooking('Bohol Island Hopping')">Book</button>
-                    </div>
-                </div>
-            </article>
-        </div>
-    </div>
-</section>
-
-<section class="section destinations" id="destinations">
-    <div class="container">
-        <div class="section-title">
-            <span>Explore the Island</span>
-            <h2>Discover Bohol</h2>
-            <p>From beaches and mountains to historic towns and breathtaking natural attractions.</p>
-        </div>
-        <div class="destination-grid">
-            <a href="#" class="destination-card">
-                <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1000&q=80" alt="Panglao">
-                <div class="destination-overlay">
-                    <h3>Panglao</h3>
-                    <p>Beaches & Island Adventures</p>
-                </div>
-            </a>
-            <a href="#" class="destination-card">
-                <img src="alicia-panoramic-park-bohol.webp" alt="Alicia" onerror="this.src='https://images.unsplash.com/photo-1518509562904-e7ef99cdcc86?auto=format&fit=crop&w=1000&q=80'">
-                <div class="destination-overlay">
-                    <h3>Alicia</h3>
-                    <p>Mountains & Panoramic Views</p>
-                </div>
-            </a>
-            <a href="#" class="destination-card">
-                <img src="anda.webp" alt="Anda" onerror="this.src='https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1000&q=80'">
-                <div class="destination-overlay">
-                    <h3>Anda</h3>
-                    <p>Hidden Beaches & Nature</p>
-                </div>
-            </a>
-            <a href="#" class="destination-card">
-                <img src="loboc.jpg" alt="Loboc" onerror="this.src='https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1000&q=80'">
-                <div class="destination-overlay">
-                    <h3>Loboc</h3>
-                    <p>River & Countryside</p>
-                </div>
-            </a>
-        </div>
-    </div>
-</section>
-
-<section class="section">
-    <div class="container">
-        <div class="about-grid">
-            <div class="about-image">
-                <video src="video.mp4" controls autoplay muted loop playsinline poster="alicia-panoramic-park-bohol.webp"></video>
-            </div>
-            <div class="about-content">
-                <span>Experience Bohol</span>
-                <h2>Discover Bohol's Wonders</h2>
-                <p>Bohol is more than Chocolate Hills and beaches. Discover hidden places, local food, culture and unforgettable experiences.</p>
-                <p>Whether you're looking for adventure, relaxation, photography or authentic local experiences, we'll help you make the most of your trip.</p>
-                <a href="#tours" class="btn btn-primary">Explore Tours</a>
-            </div>
-        </div>
-    </div>
-</section>
-
-<section class="section why-us">
-    <div class="container">
-        <div class="section-title">
-            <span>Travel Better</span>
-            <h2>Why Book With Us?</h2>
-        </div>
-        <div class="features">
-            <div class="feature">
-                <div class="feature-icon">🗺️</div>
-                <h3>Curated Experiences</h3>
-                <p>Top-rated destinations and hidden gems in Bohol.</p>
-            </div>
-            <div class="feature">
-                <div class="feature-icon">📅</div>
-                <h3>Easy Booking</h3>
-                <p>Check availability and book your experience online.</p>
-            </div>
-            <div class="feature">
-                <div class="feature-icon">💳</div>
-                <h3>Secure Payment</h3>
-                <p>Convenient online payment options for travelers.</p>
-            </div>
-            <div class="feature">
-                <div class="feature-icon">❤️</div>
-                <h3>Authentic Experiences</h3>
-                <p>Discover Bohol beyond the typical tourist route.</p>
-            </div>
-        </div>
-    </div>
-</section>
-
-<section class="section" id="things">
-    <div class="container">
-        <div class="section-title">
-            <span>Explore More</span>
-            <h2>Things To Do In Bohol</h2>
-        </div>
-        <div class="things-grid">
-            <div class="thing"><div class="thing-icon">🏝️</div><h3>Island Hopping</h3><p>Explore Bohol's beautiful islands.</p></div>
-            <div class="thing"><div class="thing-icon">🥾</div><h3>Hiking</h3><p>Discover mountain trails and viewpoints.</p></div>
-            <div class="thing"><div class="thing-icon">🤿</div><h3>Snorkeling</h3><p>Explore underwater marine life.</p></div>
-            <div class="thing"><div class="thing-icon">📸</div><h3>Photography Tours</h3><p>Find the best photo locations.</p></div>
-            <div class="thing"><div class="thing-icon">🍴</div><h3>Food Tours</h3><p>Taste authentic Boholano food.</p></div>
-            <div class="thing"><div class="thing-icon">🌅</div><h3>Sunset Tours</h3><p>Experience unforgettable sunsets.</p></div>
-            <div class="thing"><div class="thing-icon">🏕️</div><h3>Camping</h3><p>Spend a night surrounded by nature.</p></div>
-            <div class="thing"><div class="thing-icon">🐒</div><h3>Wildlife</h3><p>Discover Bohol's unique wildlife.</p></div>
-        </div>
-    </div>
-</section>
-
-<section class="section testimonial-section">
-    <div class="container">
-        <div class="testimonial">
-            <div class="stars">⭐⭐⭐⭐⭐</div>
-            <blockquote>"Our trip was unforgettable. We discovered places we would never have found on our own."</blockquote>
-            <div class="testimonial-author">Sarah — United States</div>
-        </div>
-    </div>
-</section>
-
-<section class="section" id="blog">
-    <div class="container">
-        <div class="section-title">
-            <span>Bohol Travel Guide</span>
-            <h2>Plan Your Trip</h2>
-            <p>Helpful travel guides and recommendations.</p>
-        </div>
-        <div class="blog-grid">
-            <article class="blog-card">
-                <div class="blog-image"><img src="https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1000&q=80"></div>
-                <div class="blog-content">
-                    <small>BOHOL TRAVEL</small>
-                    <h3>10 Best Places To Visit In Bohol</h3>
-                    <p>Discover the destinations you shouldn't miss during your Bohol trip.</p>
-                    <a href="blog-1.html" class="btn btn-outline" style="padding: 10px 20px; font-size: 14px;">Read More</a>
-                </div>
-            </article>
-
-            <article class="blog-card">
-                <div class="blog-image"><img src="https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1000&q=80"></div>
-                <div class="blog-content">
-                    <small>TRAVEL GUIDE</small>
-                    <h3>Best Time To Visit Bohol</h3>
-                    <p>Learn when to visit Bohol for the best weather and experiences.</p>
-                    <a href="blog-2.html" class="btn btn-outline" style="padding: 10px 20px; font-size: 14px;">Read More</a>
-                </div>
-            </article>
-
-            <article class="blog-card">
-                <div class="blog-image"><img src="alicia-panoramic-park-bohol.webp" onerror="this.src='https://images.unsplash.com/photo-1518509562904-e7ef99cdcc86?auto=format&fit=crop&w=1000&q=80'"></div>
-                <div class="blog-content">
-                    <small>ADVENTURE</small>
-                    <h3>Guide To Alicia Panoramic Park Tour</h3>
-                    <p>Everything you need to know before visiting Alicia.</p>
-                    <a href="blog-3.html" class="btn btn-outline" style="padding: 10px 20px; font-size: 14px;">Read More</a>
-                </div>
-            </article>
-
-            <article class="blog-card">
-                <div class="blog-image"><img src="diving.webp" onerror="this.src='https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1000&q=80'"></div>
-                <div class="blog-content">
-                    <small>ISLAND GUIDE</small>
-                    <h3>Bohol Island Hopping Adventure</h3>
-                    <p>Discover dolphin watching, Balicasag Island turtle snorkeling, and Virgin Island sand bars.</p>
-                    <a href="blog-4.html" class="btn btn-outline" style="padding: 10px 20px; font-size: 14px;">Read More</a>
-                </div>
-            </article>
-        </div>
-    </div>
-</section>
-
-<section class="cta">
-    <div class="container">
-        <h2>Ready To Explore Bohol?</h2>
-        <p>Find your perfect tour and start your Bohol adventure.</p>
-        <a href="#booking" class="btn btn-primary">Book Your Adventure</a>
-    </div>
-</section>
-
-<footer>
-    <div class="container">
-        <div class="footer-grid">
-            <div class="footer-column">
-                <h3>TAPP<span style="color:#f4a261">TOURS</span></h3>
-                <p>Discover Bohol and experience the island beyond the ordinary.</p>
-            </div>
-            <div class="footer-column">
-                <h3>Explore</h3>
-                <ul>
-                    <li><a href="#destinations">Destinations</a></li>
-                    <li><a href="#tours">Tours</a></li>
-                    <li><a href="#things">Things To Do</a></li>
-                </ul>
-            </div>
-            <div class="footer-column">
-                <h3>Information</h3>
-                <ul>
-                    <li>About Us</li>
-                    <li>Contact</li>
-                    <li>FAQs</li>
-                    <li>Privacy Policy</li>
-                    <li><a href="terms.html">Terms & Conditions</a></li>
-                </ul>
-            </div>
-            <div class="footer-column">
-                <h3>Contact Us</h3>
-                <ul>
-                    <li>📍 Pob. Alicia, Bohol, Philippines</li>
-                    <li>📧 <a href="mailto:support@aliciapanoramicpark.com">support@aliciapanoramicpark.com</a></li>
-                    <li>🇵🇭 <a href="tel:+639912259429">+63 991 225 9429</a></li>
-                    <li>🇺🇸 <a href="tel:+14325997978">+1 (432) 599-7978</a></li>
-                </ul>
-            </div>
-        </div>
-        <div class="copyright">© 2026 TAPP Tours. All rights reserved.</div>
-    </div>
-</footer>
-
-<!-- BOOKING MODAL -->
-<div class="modal" id="bookingModal">
-    <div class="modal-content">
-        <div class="modal-close" onclick="closeBooking()">×</div>
-        <h2>Book Your Tour</h2>
-        <form class="modal-form" id="checkoutForm" onsubmit="submitBooking(event)">
-            <input type="text" id="modalTour" placeholder="Selected tour" readonly required>
-            <input type="text" id="modalName" placeholder="Full Name" required>
-            <input type="email" id="modalEmail" placeholder="Email Address" required>
-            <input type="tel" id="modalPhone" placeholder="Phone Number" required>
-            <input type="date" id="modalBookingDate" required>
-            <select id="modalTimeSlot" required>
-                <option value="">Select time slot</option>
-                <option value="04:00 AM">04:00 AM (Sunrise)</option>
-                <option value="05:00 AM">05:00 AM</option>
-                <option value="06:00 AM">06:00 AM</option>
-                <option value="07:00 AM">07:00 AM</option>
-                <option value="08:00 AM">08:00 AM</option>
-                <option value="09:00 AM">09:00 AM</option>
-                <option value="10:00 AM">10:00 AM</option>
-                <option value="11:00 AM">11:00 AM</option>
-                <option value="12:00 PM">12:00 PM (Noon)</option>
-                <option value="01:00 PM">01:00 PM</option>
-                <option value="02:00 PM">02:00 PM</option>
-                <option value="03:00 PM">03:00 PM</option>
-                <option value="04:00 PM">04:00 PM</option>
-                <option value="05:00 PM">05:00 PM (Sunset)</option>
-                <option value="06:00 PM">06:00 PM</option>
-                <option value="07:00 PM">07:00 PM</option>
-                <option value="08:00 PM">08:00 PM</option>
-            </select>
-            <select id="modalGuests" required>
-                <option value="">Select number of guests / boat size</option>
-                <option value="1">1-5 Guests (Small Boat - ₱3,500)</option>
-                <option value="6">6-10 Guests (Small Boat - ₱4,000)</option>
-                <option value="11">11-14 Guests (Small Boat - ₱4,500)</option>
-                <option value="20">Up to 20 Guests (Medium Boat - ₱8,500)</option>
-                <option value="26">Up to 26 Guests (Big Boat - ₱10,500)</option>
-            </select>
-            
-            <!-- Terms and Conditions Checkbox -->
-            <div style="display: flex; align-items: flex-start; gap: 10px; margin: 4px 0 8px 0; font-size: 13px;">
-                <input type="checkbox" id="termsCheckbox" required style="width: 18px; height: 18px; margin-top: 2px; accent-color: #f4a261; cursor: pointer;">
-                <label for="termsCheckbox" style="cursor: pointer; color: #555; line-height: 1.5;">
-                    I agree to the <a href="terms.html" target="_blank" style="color: #f4a261; font-weight: 700; text-decoration: underline;">Terms & Conditions</a>, including the 24-hour cancellation policy, 30% administrative fee deduction, and liability waiver.
+            <!-- TERMS AND CONDITIONS CHECKBOX -->
+            <div class="flex items-start gap-3 pt-2 bg-stone-50 p-4 rounded-2xl border border-stone-200">
+                <input type="checkbox" id="termsCheckbox" required class="mt-1 w-4 h-4 text-emerald-600 border-stone-300 rounded focus:ring-emerald-500 cursor-pointer">
+                <label for="termsCheckbox" class="text-xs text-stone-600 leading-relaxed cursor-pointer">
+                    I have read and agree to the <a href="terms.html" target="_blank" class="text-emerald-700 font-bold underline hover:text-emerald-900">Terms & Conditions</a>, including the cancellation policy (no refund < 24 hrs, 30% fee on eligible refunds) and liability waiver.
                 </label>
             </div>
 
-            <button type="submit" id="submitBtn" class="btn btn-primary">Proceed to Payment</button>
+            <button type="submit" id="submitBtn" class="w-full bg-emerald-800 hover:bg-emerald-900 text-white font-bold h-14 rounded-xl shadow-lg transition-all text-sm tracking-wide mt-2">
+                Proceed to Secure Payment
+            </button>
         </form>
     </div>
 </div>
 
 <script>
     function toggleMenu() {
-        document.getElementById("navigation").classList.toggle("active");
+        const nav = document.getElementById("navigation");
+        nav.classList.toggle("hidden");
+        nav.classList.toggle("flex");
+        nav.classList.toggle("flex-col");
+        nav.classList.toggle("absolute");
+        nav.classList.toggle("top-20");
+        nav.classList.toggle("left-0");
+        nav.classList.toggle("w-full");
+        nav.classList.toggle("bg-stone-900");
+        nav.classList.toggle("p-6");
+        nav.classList.toggle("shadow-xl");
+    }
+
+    // Populate guest / boat dropdown based on tour selection
+    function updateGuestOptions() {
+        const tour = document.getElementById("tourSelect").value;
+        const guestSelect = document.getElementById("guestSelect");
+        guestSelect.innerHTML = "";
+
+        if (tour === "Bohol Island Hopping") {
+            const options = [
+                { val: "1", text: "1-5 Guests (Small Boat - ₱3,500)" },
+                { val: "6", text: "6-10 Guests (Small Boat - ₱4,000)" },
+                { val: "11", text: "11-14 Guests (Small Boat - ₱4,500)" },
+                { val: "20", text: "Up to 20 Guests (Medium Boat - ₱8,500)" },
+                { val: "26", text: "Up to 26 Guests (Big Boat - ₱10,500)" }
+            ];
+            options.forEach(opt => {
+                const el = document.createElement("option");
+                el.value = opt.val;
+                el.innerText = opt.text;
+                guestSelect.appendChild(el);
+            });
+        } else {
+            // Alicia Panoramic Park Tour (default or explicit)
+            for (let i = 1; i <= 5; i++) {
+                const el = document.createElement("option");
+                el.value = i;
+                el.innerText = `${i} Guest${i > 1 ? 's' : ''} (₱750 flat group rate)`;
+                guestSelect.appendChild(el);
+            }
+        }
+    }
+
+    // Initialize dropdown on load
+    updateGuestOptions();
+
+    // Also update modal guest dropdown when modal opens or tour changes
+    function populateModalGuests(tourName, selectedVal = '1') {
+        const modalGuests = document.getElementById("modalGuests");
+        modalGuests.innerHTML = "";
+
+        if (tourName === "Bohol Island Hopping") {
+            const options = [
+                { val: "1", text: "1-5 Guests (Small Boat - ₱3,500)" },
+                { val: "6", text: "6-10 Guests (Small Boat - ₱4,000)" },
+                { val: "11", text: "11-14 Guests (Small Boat - ₱4,500)" },
+                { val: "20", text: "Up to 20 Guests (Medium Boat - ₱8,500)" },
+                { val: "26", text: "Up to 26 Guests (Big Boat - ₱10,500)" }
+            ];
+            options.forEach(opt => {
+                const el = document.createElement("option");
+                el.value = opt.val;
+                el.innerText = opt.text;
+                if (selectedVal >= parseInt(opt.val) && selectedVal <= (parseInt(opt.val) + 5 || 26)) {
+                    el.selected = true;
+                }
+                modalGuests.appendChild(el);
+            });
+        } else {
+            for (let i = 1; i <= 5; i++) {
+                const el = document.createElement("option");
+                el.value = i;
+                el.innerText = `${i} Guest${i > 1 ? 's' : ''} (₱750 flat group rate)`;
+                if (parseInt(selectedVal) === i) el.selected = true;
+                modalGuests.appendChild(el);
+            }
+        }
     }
 
     function openBooking(tourName, date = '', time = '04:00 AM', guests = '1') {
         document.getElementById("modalTour").value = tourName;
         if (date) document.getElementById("modalBookingDate").value = date;
         if (time) document.getElementById("modalTimeSlot").value = time;
-        if (guests) document.getElementById("modalGuests").value = guests;
-        document.getElementById("bookingModal").classList.add("active");
+        populateModalGuests(tourName, guests);
+        document.getElementById("bookingModal").classList.remove("hidden");
     }
 
     function closeBooking() {
-        document.getElementById("bookingModal").classList.remove("active");
+        document.getElementById("bookingModal").classList.add("hidden");
     }
 
     function showNotification(message) {
         const banner = document.getElementById("notificationBanner");
         banner.innerText = message;
-        banner.classList.add("active");
+        banner.classList.remove("hidden");
         setTimeout(() => {
-            banner.classList.remove("active");
+            banner.classList.add("hidden");
         }, 4000);
     }
 
@@ -629,16 +512,16 @@
 
     async function submitBooking(event) {
         event.preventDefault();
-
-        const termsChecked = document.getElementById('termsCheckbox').checked;
+        
+        const termsChecked = document.getElementById("termsCheckbox").checked;
         if (!termsChecked) {
-            showNotification("Please read and accept the Terms & Conditions to proceed.");
+            showNotification("You must accept the Terms & Conditions to proceed.");
             return;
         }
 
         const btn = document.getElementById('submitBtn');
         btn.disabled = true;
-        btn.innerText = 'Connecting to Payment...';
+        btn.innerText = 'Creating Secure Checkout Session...';
 
         const payload = {
             tour: document.getElementById('modalTour').value,
@@ -648,7 +531,7 @@
             bookingDate: document.getElementById('modalBookingDate').value,
             tourTime: document.getElementById('modalTimeSlot').value,
             guests: parseInt(document.getElementById('modalGuests').value),
-            termsAccepted: true
+            termsAccepted: termsChecked
         };
 
         try {
@@ -672,13 +555,13 @@
             } else {
                 showNotification(data.error || 'Payment initialization failed.');
                 btn.disabled = false;
-                btn.innerText = 'Proceed to Payment';
+                btn.innerText = 'Proceed to Secure Payment';
             }
         } catch (err) {
             console.error('Checkout error:', err);
-            showNotification(err.message || 'Server error. Please check Render logs.');
+            showNotification(err.message || 'Server error. Please check server logs.');
             btn.disabled = false;
-            btn.innerText = 'Proceed to Payment';
+            btn.innerText = 'Proceed to Secure Payment';
         }
     }
 

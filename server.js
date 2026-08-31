@@ -12,20 +12,27 @@ app.use(express.static('public'));
 
 const resend = new Resend(process.env.RESEND_API_KEY || 're_placeholder');
 
-// Helper to calculate price based on tour and guests/boat size
+// Helper to calculate price and validate guest/boat tiers based on tour selection
 function calculateTourPrice(tour, guests) {
+    const pax = parseInt(guests) || 1;
+
     if (tour === 'Alicia Panoramic Park Tour') {
-        return 750; // flat rate forAlicia
+        if (pax > 5) {
+            throw new Error('Alicia Panoramic Park Tour accommodates a maximum of 5 guests per booking.');
+        }
+        return 750; // Flat rate for Alicia Panoramic Park (up to 5 pax)
     }
+
     if (tour === 'Bohol Island Hopping') {
-        const pax = parseInt(guests) || 1;
-        if (pax <= 5) return 3500;   // Small boat 1-5 pax
-        if (pax <= 10) return 4000;  // Small boat 6-10 pax
-        if (pax <= 14) return 4500;  // Small boat 11-14 pax
-        if (pax <= 20) return 8500;  // Medium boat up to 20 pax
-        return 10500;                // Big boat up to 26 pax
+        if (pax <= 5) return 3500;   // Small boat (1-5 pax)
+        if (pax <= 10) return 4000;  // Small boat (6-10 pax)
+        if (pax <= 14) return 4500;  // Small boat (11-14 pax)
+        if (pax <= 20) return 8500;  // Medium boat (up to 20 pax)
+        if (pax <= 26) return 10500; // Big boat (up to 26 pax)
+        throw new Error('Selected guest count exceeds maximum boat capacity (up to 26 pax).');
     }
-    return 750; // default fallback
+
+    throw new Error('Invalid tour selection.');
 }
 
 // Create PayMongo Checkout Session
@@ -41,7 +48,13 @@ app.post('/api/create-checkout-session', async (req, res) => {
             return res.status(400).json({ error: 'Missing required booking details.' });
         }
 
-        const amountPHP = calculateTourPrice(tour, guests);
+        let amountPHP;
+        try {
+            amountPHP = calculateTourPrice(tour, guests);
+        } catch (validationErr) {
+            return res.status(400).json({ error: validationErr.message });
+        }
+
         const amountCents = amountPHP * 100; // PayMongo expects centavos
         const activeSecretKey = secretKey || process.env.PAYMONGO_SECRET_KEY;
 
@@ -55,6 +68,10 @@ app.post('/api/create-checkout-session', async (req, res) => {
         const successUrl = `${protocol}://${domain}/success.html?session_id={CHECKOUT_SESSION_ID}`;
         const cancelUrl = `${protocol}://${domain}/index.html`;
 
+        const itemDescription = tour === 'Alicia Panoramic Park Tour' 
+            ? `${tour} (${tourTime || '04:00 AM'}, ${guests} Guest${guests > 1 ? 's' : ''})` 
+            : `${tour} (${tourTime || '04:00 AM'}, Tier: ${guests} Pax)`;
+
         const paymongoPayload = {
             data: {
                 attributes: {
@@ -67,7 +84,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
                         {
                             amount: amountCents,
                             currency: 'PHP',
-                            name: `${tour} (${tourTime || '04:00 AM'}, ${guests} Pax/Boat)`,
+                            name: itemDescription,
                             quantity: 1
                         }
                     ],
@@ -107,7 +124,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
                                 <li><strong>Tour:</strong> ${tour}</li>
                                 <li><strong>Date:</strong> ${bookingDate}</li>
                                 <li><strong>Time Slot:</strong> ${tourTime || '04:00 AM'}</li>
-                                <li><strong>Guests / Boat Tier:</strong> ${guests} Pax option</li>
+                                <li><strong>Guests / Boat Tier:</strong> ${guests}</li>
                                 <li><strong>Total Amount:</strong> ₱${amountPHP.toLocaleString()}</li>
                             </ul>
                             <p>Please complete your payment through the secure link provided at checkout.</p>
