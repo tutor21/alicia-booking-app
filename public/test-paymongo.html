@@ -71,6 +71,11 @@
                     </div>
                 </div>
 
+                <div class="flex items-center gap-2 pt-2">
+                    <input type="checkbox" id="testTerms" checked class="w-4 h-4 text-emerald-600 rounded cursor-pointer">
+                    <label for="testTerms" class="text-xs text-stone-600 cursor-pointer">Simulate Terms & Conditions accepted (`termsAccepted: true`)</label>
+                </div>
+
                 <button type="submit" id="testBtn" class="w-full bg-emerald-800 hover:bg-emerald-900 text-white font-bold py-3.5 rounded-xl transition-all shadow-md text-sm">
                     Send Test Request with Keys to /api/create-checkout-session
                 </button>
@@ -118,7 +123,8 @@
                 guests: parseInt(document.getElementById('testGuests').value) || 1,
                 amount: parseFloat(document.getElementById('testAmount').value) || 750,
                 secretKey: document.getElementById('testSecretKey').value.trim(),
-                publicKey: document.getElementById('testPublicKey').value.trim()
+                publicKey: document.getElementById('testPublicKey').value.trim(),
+                termsAccepted: document.getElementById('testTerms').checked
             };
 
             try {
