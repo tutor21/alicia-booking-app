@@ -5,30 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PayMongo Key Diagnostic Console | TAPP Tours</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
 </head>
-<body class="bg-stone-50 font-sans min-h-screen p-6">
-    <div class="max-w-3xl mx-auto">
-        <div class="mb-6 flex justify-between items-center">
+<body class="bg-stone-50 text-stone-800 font-sans min-h-screen p-6">
+    <div class="max-w-4xl mx-auto">
+        <div class="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-                <span class="text-xs font-bold uppercase tracking-widest text-amber-600 bg-amber-50 px-3 py-1 rounded-full border border-amber-200">Sandbox / Key Diagnostic Mode</span>
-                <h1 class="text-3xl font-bold text-stone-900 mt-2">PayMongo Key Diagnostic Console</h1>
-                <p class="text-stone-600 text-sm mt-1">Test your PayMongo secret and public keys dynamically with custom amounts and payloads.</p>
+                <span class="text-xs font-bold uppercase tracking-widest text-amber-600 bg-amber-50 px-3 py-1 rounded-full border border-amber-200">Sandbox / Diagnostic Mode</span>
+                <h1 class="text-3xl font-extrabold text-stone-900 mt-2">PayMongo Key Diagnostic Console</h1>
+                <p class="text-stone-600 text-sm mt-1">Test your PayMongo secret/public keys and validate server checkout rules for TAPP Tours.</p>
             </div>
-            <a href="index.html" class="text-sm font-bold text-emerald-700 hover:underline">← Back to Homepage</a>
+            <a href="index.html" class="text-sm font-bold text-emerald-700 hover:underline bg-white px-4 py-2 rounded-xl border border-stone-200 shadow-sm">← Back to Homepage</a>
         </div>
 
-        <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6 sm:p-8 mb-6">
-            <h2 class="text-xl font-bold text-stone-900 mb-4">PayMongo API Credentials Override</h2>
+        <div class="bg-white rounded-3xl shadow-sm border border-stone-200 p-6 sm:p-8 mb-6">
+            <h2 class="text-xl font-bold text-stone-900 mb-4">API Credentials Override</h2>
             
             <form id="testForm" onsubmit="runTestCheckout(event)" class="space-y-4">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-4 border-b border-stone-100">
                     <div>
-                        <label class="block text-xs font-bold text-stone-600 uppercase mb-1">PayMongo Secret Key (`sk_test_...`)</label>
-                        <input type="password" id="testSecretKey" placeholder="Leave blank to use server .env key" class="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-sm outline-none font-mono focus:ring-2 focus:ring-emerald-600">
+                        <label class="block text-xs font-bold text-stone-600 uppercase mb-1">PayMongo Secret Key (`sk_test_...` or live)</label>
+                        <input type="password" id="testSecretKey" placeholder="Leave blank to use server .env key" class="w-full px-4 py-3 rounded-xl border border-stone-300 text-sm outline-none font-mono focus:ring-2 focus:ring-emerald-600">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-stone-600 uppercase mb-1">PayMongo Public Key (`pk_test_...`)</label>
-                        <input type="text" id="testPublicKey" placeholder="Optional public key" class="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-sm outline-none font-mono focus:ring-2 focus:ring-emerald-600">
+                        <input type="text" id="testPublicKey" placeholder="Optional public key" class="w-full px-4 py-3 rounded-xl border border-stone-300 text-sm outline-none font-mono focus:ring-2 focus:ring-emerald-600">
                     </div>
                 </div>
 
@@ -36,57 +40,64 @@
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-bold text-stone-600 uppercase mb-1">Tour / Item Name</label>
-                        <input type="text" id="testTour" value="Alicia Panoramic Park Tour" class="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-sm outline-none focus:ring-2 focus:ring-emerald-600" required>
+                        <label class="block text-xs font-bold text-stone-600 uppercase mb-1">Select Tour / Experience</label>
+                        <select id="testTour" onchange="updateDiagnosticTierOptions()" class="w-full px-4 py-3 rounded-xl border border-stone-300 text-sm outline-none font-medium focus:ring-2 focus:ring-emerald-600 bg-white">
+                            <option value="Alicia Panoramic Park Tour">Alicia Panoramic Park Tour (₱750)</option>
+                            <option value="Bohol Island Hopping">Bohol Island Hopping (Tiered Boat)</option>
+                        </select>
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-stone-600 uppercase mb-1">Booking Date</label>
-                        <input type="date" id="testDate" value="2026-09-10" class="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-sm outline-none focus:ring-2 focus:ring-emerald-600" required>
+                        <input type="date" id="testDate" value="2026-09-15" class="w-full px-4 py-3 rounded-xl border border-stone-300 text-sm outline-none focus:ring-2 focus:ring-emerald-600" required>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-stone-600 uppercase mb-1">Guests / Boat Tier</label>
+                        <select id="testGuests" onchange="updateDiagnosticAmount()" class="w-full px-4 py-3 rounded-xl border border-stone-300 text-sm outline-none font-medium focus:ring-2 focus:ring-emerald-600 bg-white">
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-stone-600 uppercase mb-1">Calculated Amount (PHP)</label>
+                        <input type="number" id="testAmount" readonly class="w-full px-4 py-3 rounded-xl border border-stone-200 text-sm outline-none font-bold text-emerald-800 bg-stone-100 cursor-not-allowed">
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
                         <label class="block text-xs font-bold text-stone-600 uppercase mb-1">Customer Name</label>
-                        <input type="text" id="testName" value="Juan Tester" class="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-sm outline-none" required>
+                        <input type="text" id="testName" value="Juan Tester" class="w-full px-4 py-3 rounded-xl border border-stone-300 text-sm outline-none" required>
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-stone-600 uppercase mb-1">Email</label>
-                        <input type="email" id="testEmail" value="tester@example.com" class="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-sm outline-none" required>
+                        <input type="email" id="testEmail" value="tester@example.com" class="w-full px-4 py-3 rounded-xl border border-stone-300 text-sm outline-none" required>
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-stone-600 uppercase mb-1">Phone</label>
-                        <input type="tel" id="testPhone" value="09171234567" class="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-sm outline-none" required>
+                        <input type="tel" id="testPhone" value="09171234567" class="w-full px-4 py-3 rounded-xl border border-stone-300 text-sm outline-none" required>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-stone-600 uppercase mb-1">Amount (PHP)</label>
-                        <input type="number" id="testAmount" value="750" min="1" step="any" class="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-sm outline-none focus:ring-2 focus:ring-emerald-600 font-bold text-emerald-800" required>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-stone-600 uppercase mb-1">Guests</label>
-                        <input type="number" id="testGuests" value="2" min="1" max="10" class="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-sm outline-none" required>
-                    </div>
-                </div>
-
-                <div class="flex items-center gap-2 pt-2">
+                <div class="flex items-center gap-3 pt-2 bg-stone-50 p-4 rounded-xl border border-stone-200">
                     <input type="checkbox" id="testTerms" checked class="w-4 h-4 text-emerald-600 rounded cursor-pointer">
-                    <label for="testTerms" class="text-xs text-stone-600 cursor-pointer">Simulate Terms & Conditions accepted (`termsAccepted: true`)</label>
+                    <label for="testTerms" class="text-xs text-stone-700 cursor-pointer">
+                        Simulate Terms & Conditions accepted (<code class="font-mono text-emerald-800">termsAccepted: true</code>)
+                    </label>
                 </div>
 
-                <button type="submit" id="testBtn" class="w-full bg-emerald-800 hover:bg-emerald-900 text-white font-bold py-3.5 rounded-xl transition-all shadow-md text-sm">
+                <button type="submit" id="testBtn" class="w-full bg-emerald-800 hover:bg-emerald-900 text-white font-bold py-4 rounded-xl transition-all shadow-md text-sm">
                     Send Test Request with Keys to /api/create-checkout-session
                 </button>
             </form>
         </div>
 
         <!-- RESULT CONSOLE -->
-        <div class="bg-stone-900 text-stone-200 rounded-2xl p-6 shadow-xl border border-stone-800">
+        <div class="bg-stone-900 text-stone-200 rounded-3xl p-6 shadow-xl border border-stone-800">
             <div class="flex justify-between items-center mb-3 pb-3 border-b border-stone-800">
                 <span class="text-xs font-bold uppercase tracking-wider text-emerald-400 font-mono">Server Response Terminal</span>
-                <span id="statusBadge" class="px-2.5 py-0.5 rounded text-[11px] font-mono font-bold bg-stone-800 text-stone-400">IDLE</span>
+                <span id="statusBadge" class="px-3 py-1 rounded-full text-[11px] font-mono font-bold bg-stone-800 text-stone-400">IDLE</span>
             </div>
             
             <div id="actionBox" class="mb-4 hidden">
@@ -95,11 +106,53 @@
                 </a>
             </div>
 
-            <pre id="outputLog" class="bg-stone-950 p-4 rounded-xl text-xs font-mono text-emerald-300 overflow-x-auto min-h-[120px] max-h-[300px] border border-stone-900">// Enter keys above and click the button to test PayMongo API connectivity...</pre>
+            <pre id="outputLog" class="bg-stone-950 p-4 rounded-2xl text-xs font-mono text-emerald-300 overflow-x-auto min-h-[140px] max-h-[320px] border border-stone-900">// Select tour and options above and click test button to verify PayMongo session creation...</pre>
         </div>
     </div>
 
     <script>
+        function updateDiagnosticTierOptions() {
+            const tour = document.getElementById('testTour').value;
+            const guestSelect = document.getElementById('testGuests');
+            guestSelect.innerHTML = '';
+
+            if (tour === 'Bohol Island Hopping') {
+                const options = [
+                    { val: '3', text: '1-5 Guests (Small Boat - ₱3,500)', price: 3500 },
+                    { val: '8', text: '6-10 Guests (Small Boat - ₱4,000)', price: 4000 },
+                    { val: '12', text: '11-14 Guests (Small Boat - ₱4,500)', price: 4500 },
+                    { val: '18', text: 'Up to 20 Guests (Medium Boat - ₱8,500)', price: 8500 },
+                    { val: '25', text: 'Up to 26 Guests (Big Boat - ₱10,500)', price: 10500 }
+                ];
+                options.forEach(opt => {
+                    const el = document.createElement('option');
+                    el.value = opt.val;
+                    el.setAttribute('data-price', opt.price);
+                    el.innerText = opt.text;
+                    guestSelect.appendChild(el);
+                });
+            } else {
+                for (let i = 1; i <= 5; i++) {
+                    const el = document.createElement('option');
+                    el.value = i;
+                    el.setAttribute('data-price', 750);
+                    el.innerText = `${i} Guest${i > 1 ? 's' : ''} (₱750 flat group rate)`;
+                    guestSelect.appendChild(el);
+                }
+            }
+            updateDiagnosticAmount();
+        }
+
+        function updateDiagnosticAmount() {
+            const guestSelect = document.getElementById('testGuests');
+            const selectedOpt = guestSelect.options[guestSelect.selectedIndex];
+            const price = selectedOpt ? selectedOpt.getAttribute('data-price') : '750';
+            document.getElementById('testAmount').value = price;
+        }
+
+        // Initialize on load
+        updateDiagnosticTierOptions();
+
         async function runTestCheckout(event) {
             event.preventDefault();
             const btn = document.getElementById('testBtn');
@@ -109,7 +162,7 @@
             
             btn.disabled = true;
             btn.innerText = 'Connecting to PayMongo API with test keys...';
-            badge.className = 'px-2.5 py-0.5 rounded text-[11px] font-mono font-bold bg-amber-500/20 text-amber-400';
+            badge.className = 'px-3 py-1 rounded-full text-[11px] font-mono font-bold bg-amber-500/20 text-amber-400';
             badge.innerText = 'PENDING';
             actionBox.classList.add('hidden');
             logBox.innerText = 'Sending POST request with key payload...';
@@ -121,7 +174,6 @@
                 customerPhone: document.getElementById('testPhone').value,
                 bookingDate: document.getElementById('testDate').value,
                 guests: parseInt(document.getElementById('testGuests').value) || 1,
-                amount: parseFloat(document.getElementById('testAmount').value) || 750,
                 secretKey: document.getElementById('testSecretKey').value.trim(),
                 publicKey: document.getElementById('testPublicKey').value.trim(),
                 termsAccepted: document.getElementById('testTerms').checked
@@ -138,17 +190,17 @@
                 logBox.innerText = JSON.stringify(data, null, 2);
 
                 if (res.ok && data.checkoutUrl) {
-                    badge.className = 'px-2.5 py-0.5 rounded text-[11px] font-mono font-bold bg-emerald-500/20 text-emerald-400';
+                    badge.className = 'px-3 py-1 rounded-full text-[11px] font-mono font-bold bg-emerald-500/20 text-emerald-400';
                     badge.innerText = `HTTP ${res.status} SUCCESS`;
                     document.getElementById('checkoutLink').href = data.checkoutUrl;
                     actionBox.classList.remove('hidden');
                 } else {
-                    badge.className = 'px-2.5 py-0.5 rounded text-[11px] font-mono font-bold bg-red-500/20 text-red-400';
+                    badge.className = 'px-3 py-1 rounded-full text-[11px] font-mono font-bold bg-red-500/20 text-red-400';
                     badge.innerText = `HTTP ${res.status} ERROR`;
                 }
             } catch (err) {
                 console.error(err);
-                badge.className = 'px-2.5 py-0.5 rounded text-[11px] font-mono font-bold bg-red-500/20 text-red-400';
+                badge.className = 'px-3 py-1 rounded-full text-[11px] font-mono font-bold bg-red-500/20 text-red-400';
                 badge.innerText = 'NETWORK ERROR';
                 logBox.innerText = `Error: ${err.message}\n(Ensure your Node.js server is running.)`;
             } finally {
