@@ -109,10 +109,10 @@ app.post('/api/create-checkout-session', async (req, res) => {
         const data = await response.json();
 
         if (response.ok && data.data && data.data.attributes && data.data.attributes.checkout_url) {
-            // Send notification email via Resend asynchronously
+            // Send confirmation email via Resend using payments@aliciapanoramicpark.com
             try {
                 await resend.emails.send({
-                    from: 'TAPP Tours <onboarding@resend.dev>',
+                    from: process.env.RESEND_FROM_EMAIL || 'TAPP Tours <payments@aliciapanoramicpark.com>',
                     to: customerEmail,
                     subject: `Your Booking Reservation: ${tour}`,
                     html: `
