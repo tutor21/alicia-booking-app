@@ -518,7 +518,7 @@
                     <li>Contact</li>
                     <li>FAQs</li>
                     <li>Privacy Policy</li>
-                    <li>Terms & Conditions</li>
+                    <li><a href="terms.html">Terms & Conditions</a></li>
                 </ul>
             </div>
             <div class="footer-column">
@@ -574,6 +574,15 @@
                 <option value="20">Up to 20 Guests (Medium Boat - ₱8,500)</option>
                 <option value="26">Up to 26 Guests (Big Boat - ₱10,500)</option>
             </select>
+            
+            <!-- Terms and Conditions Checkbox -->
+            <div style="display: flex; align-items: flex-start; gap: 10px; margin: 4px 0 8px 0; font-size: 13px;">
+                <input type="checkbox" id="termsCheckbox" required style="width: 18px; height: 18px; margin-top: 2px; accent-color: #f4a261; cursor: pointer;">
+                <label for="termsCheckbox" style="cursor: pointer; color: #555; line-height: 1.5;">
+                    I agree to the <a href="terms.html" target="_blank" style="color: #f4a261; font-weight: 700; text-decoration: underline;">Terms & Conditions</a>, including the 24-hour cancellation policy, 30% administrative fee deduction, and liability waiver.
+                </label>
+            </div>
+
             <button type="submit" id="submitBtn" class="btn btn-primary">Proceed to Payment</button>
         </form>
     </div>
@@ -620,6 +629,13 @@
 
     async function submitBooking(event) {
         event.preventDefault();
+
+        const termsChecked = document.getElementById('termsCheckbox').checked;
+        if (!termsChecked) {
+            showNotification("Please read and accept the Terms & Conditions to proceed.");
+            return;
+        }
+
         const btn = document.getElementById('submitBtn');
         btn.disabled = true;
         btn.innerText = 'Connecting to Payment...';
@@ -631,7 +647,8 @@
             customerPhone: document.getElementById('modalPhone').value,
             bookingDate: document.getElementById('modalBookingDate').value,
             tourTime: document.getElementById('modalTimeSlot').value,
-            guests: parseInt(document.getElementById('modalGuests').value)
+            guests: parseInt(document.getElementById('modalGuests').value),
+            termsAccepted: true
         };
 
         try {

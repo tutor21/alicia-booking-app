@@ -31,8 +31,12 @@ function calculateTourPrice(tour, guests) {
 // Create PayMongo Checkout Session
 app.post('/api/create-checkout-session', async (req, res) => {
     try {
-        const { tour, customerName, customerEmail, customerPhone, bookingDate, tourTime, guests, secretKey } = req.body;
+        const { tour, customerName, customerEmail, customerPhone, bookingDate, tourTime, guests, secretKey, termsAccepted } = req.body;
         
+        if (!termsAccepted) {
+            return res.status(400).json({ error: 'You must accept the Terms & Conditions before proceeding to payment.' });
+        }
+
         if (!tour || !customerEmail || !bookingDate) {
             return res.status(400).json({ error: 'Missing required booking details.' });
         }
