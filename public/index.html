@@ -18,12 +18,12 @@
         .section-title span { display: block; text-transform: uppercase; letter-spacing: 3px; font-size: 13px; font-weight: 700; margin-bottom: 10px; }
         .section-title h2 { font-size: 42px; line-height: 1.2; margin-bottom: 15px; }
         .section-title p { max-width: 650px; margin: auto; color: #777; }
-        .btn { display: inline-block; padding: 14px 26px; border-radius: 5px; border: none; cursor: pointer; font-weight: 700; transition: .3s; text-align: center; }
-        .btn-primary { background: #f4a261; color: #fff; }
-        .btn-primary:hover { background: #e58b45; transform: translateY(-2px); }
+        .btn { display: inline-block; padding: 14px 26px; border-radius: 8px; border: none; cursor: pointer; font-weight: 700; transition: .3s; text-align: center; }
+        .btn-primary { background: #f4a261; color: #fff; box-shadow: 0 4px 14px rgba(244,162,97,0.3); }
+        .btn-primary:hover { background: #e58b45; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(244,162,97,0.4); }
         .btn-dark { background: #222; color: #fff; }
         .btn-dark:hover { background: #000; }
-        .btn-outline { border: 1px solid #ddd; background: #fff; display: inline-block; }
+        .btn-outline { border: 1px solid #ddd; background: #fff; display: inline-block; border-radius: 8px; }
         .btn-outline:hover { background: #f5f5f5; }
 
         header { position: absolute; top: 0; left: 0; width: 100%; z-index: 1000; padding: 22px 0; color: #fff; }
@@ -42,46 +42,49 @@
         .hero-content p { font-size: 19px; max-width: 620px; margin-bottom: 30px; }
         .hero-buttons { display: flex; gap: 12px; flex-wrap: wrap; }
 
-        .booking-wrapper { margin-top: -55px; position: relative; z-index: 10; }
-        .booking-box { background: #fff; border-radius: 8px; box-shadow: 0 12px 45px rgba(0,0,0,.14); padding: 30px; }
-        .booking-box h3 { margin-bottom: 20px; font-size: 23px; }
-        .booking-grid { display: grid; grid-template-columns: 2fr 1.2fr 1.2fr 1fr auto; gap: 12px; }
-        .field label { display: block; font-size: 12px; font-weight: 700; margin-bottom: 6px; color: #666; }
-        .field input, .field select { width: 100%; height: 48px; border: 1px solid #ddd; border-radius: 5px; padding: 0 12px; background: #fff; }
+        /* Polished Booking Bar Styles */
+        .booking-wrapper { margin-top: -65px; position: relative; z-index: 10; }
+        .booking-box { background: #fff; border-radius: 16px; box-shadow: 0 16px 50px rgba(0,0,0,0.12); padding: 35px; border: 1px solid rgba(0,0,0,0.04); }
+        .booking-box h3 { margin-bottom: 22px; font-size: 24px; color: #1a1a1a; letter-spacing: -0.5px; }
+        .booking-grid { display: grid; grid-template-columns: 2fr 1.2fr 1.2fr 1.2fr auto; gap: 16px; align-items: end; }
+        .field label { display: block; font-size: 11px; font-weight: 700; margin-bottom: 8px; color: #555; text-transform: uppercase; letter-spacing: 0.8px; }
+        .field input, .field select { width: 100%; height: 52px; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 0 16px; background: #fafafa; font-size: 14px; color: #222; transition: all 0.2s ease; outline: none; }
+        .field input:focus, .field select:focus { border-color: #f4a261; background: #fff; box-shadow: 0 0 0 4px rgba(244,162,97,0.12); }
+        .booking-grid button.btn-primary { height: 52px; width: 100%; padding: 0 32px; border-radius: 10px; font-size: 15px; display: flex; align-items: center; justify-content: center; }
 
         .tour-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; }
-        .tour-card { background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 5px 25px rgba(0,0,0,.08); transition: .3s; display: flex; flex-direction: column; }
+        .tour-card { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 5px 25px rgba(0,0,0,.08); transition: .3s; display: flex; flex-direction: column; border: 1px solid #f0f0f0; }
         .tour-card:hover { transform: translateY(-6px); box-shadow: 0 12px 35px rgba(0,0,0,.12); }
         .tour-image { height: 240px; overflow: hidden; width: 100%; position: relative; }
         .tour-image img { width: 100%; height: 100%; object-fit: cover; object-position: center; transition: .5s; }
         .tour-card:hover .tour-image img { transform: scale(1.06); }
-        .tour-content { padding: 23px; display: flex; flex-direction: column; flex-grow: 1; }
+        .tour-content { padding: 25px; display: flex; flex-direction: column; flex-grow: 1; }
         .tour-meta { display: flex; justify-content: space-between; color: #888; font-size: 13px; margin-bottom: 10px; }
         .tour-content h3 { font-size: 22px; margin-bottom: 10px; }
         .tour-content p { color: #777; margin-bottom: 18px; flex-grow: 1; }
         .tour-bottom { display: flex; justify-content: space-between; align-items: center; margin-top: auto; }
-        .price { font-size: 20px; font-weight: 800; }
-        .price small { font-size: 12px; color: #888; font-weight: normal; }
+        .price { font-size: 18px; font-weight: 800; }
+        .price small { font-size: 11px; color: #888; font-weight: normal; }
         .status-soon { color: #d90429; font-size: 18px; font-weight: 700; }
 
         .destinations { background: #f7f7f7; }
         .destination-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
-        .destination-card { height: 330px; border-radius: 7px; overflow: hidden; position: relative; color: #fff; }
+        .destination-card { height: 330px; border-radius: 12px; overflow: hidden; position: relative; color: #fff; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
         .destination-card img { height: 100%; width: 100%; object-fit: cover; transition: .5s; }
         .destination-card:hover img { transform: scale(1.07); }
         .destination-overlay { position: absolute; inset: 0; background: linear-gradient(transparent 40%, rgba(0,0,0,.75)); display: flex; flex-direction: column; justify-content: flex-end; padding: 22px; }
         .destination-overlay h3 { font-size: 25px; }
 
         .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
-        .about-image { position: relative; border-radius: 8px; overflow: hidden; }
-        .about-image video { height: 520px; width: 100%; object-fit: cover; display: block; border-radius: 8px; }
+        .about-image { position: relative; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .about-image video { height: 520px; width: 100%; object-fit: cover; display: block; border-radius: 12px; }
         .about-content span { text-transform: uppercase; letter-spacing: 3px; font-size: 13px; font-weight: 700; }
         .about-content h2 { font-size: 43px; line-height: 1.15; margin: 15px 0; }
         .about-content p { color: #777; margin-bottom: 20px; }
 
         .why-us { background: #f7f7f7; }
         .features { display: grid; grid-template-columns: repeat(4, 1fr); gap: 25px; }
-        .feature { text-align: center; padding: 25px; }
+        .feature { text-align: center; padding: 25px; background: #fff; border-radius: 12px; border: 1px solid #eee; }
         .feature-icon { font-size: 42px; margin-bottom: 15px; }
         .feature h3 { margin-bottom: 8px; }
         .feature p { color: #777; font-size: 14px; }
@@ -93,23 +96,18 @@
         .testimonial-author { font-weight: 700; }
 
         .things-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
-        .thing { border: 1px solid #eee; padding: 25px; border-radius: 8px; text-align: center; transition: .3s; }
+        .thing { border: 1px solid #eee; padding: 25px; border-radius: 12px; text-align: center; transition: .3s; background: #fff; }
         .thing:hover { box-shadow: 0 10px 25px rgba(0,0,0,.08); transform: translateY(-4px); }
         .thing-icon { font-size: 40px; margin-bottom: 12px; }
 
-        .gallery-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-        .gallery-item { height: 260px; overflow: hidden; }
-        .gallery-item img { height: 100%; width: 100%; object-fit: cover; transition: .5s; }
-        .gallery-item:hover img { transform: scale(1.08); }
-
-        .blog-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; }
-        .blog-card { border: 1px solid #eee; border-radius: 8px; overflow: hidden; background: #fff; }
+        .blog-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 25px; }
+        .blog-card { border: 1px solid #eee; border-radius: 12px; overflow: hidden; background: #fff; display: flex; flex-direction: column; }
         .blog-image { height: 220px; }
         .blog-image img { height: 100%; width: 100%; object-fit: cover; }
-        .blog-content { padding: 23px; }
+        .blog-content { padding: 23px; display: flex; flex-direction: column; flex-grow: 1; }
         .blog-content small { color: #f4a261; font-weight: 700; }
         .blog-content h3 { margin: 8px 0 10px; font-size: 21px; }
-        .blog-content p { color: #777; font-size: 14px; margin-bottom: 15px; }
+        .blog-content p { color: #777; font-size: 14px; margin-bottom: 15px; flex-grow: 1; }
 
         .cta { background: linear-gradient(rgba(0,0,0,.55), rgba(0,0,0,.55)), url("https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=2000&q=85") center/cover; color: #fff; text-align: center; padding: 120px 0; }
         .cta h2 { font-size: 50px; margin-bottom: 15px; }
@@ -127,21 +125,26 @@
 
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.65); z-index: 2000; align-items: center; justify-content: center; padding: 20px; }
         .modal.active { display: flex; }
-        .modal-content { background: #fff; width: min(600px, 100%); border-radius: 8px; padding: 35px; position: relative; max-height: 90vh; overflow-y: auto; }
-        .modal-close { position: absolute; right: 20px; top: 15px; font-size: 25px; cursor: pointer; }
+        .modal-content { background: #fff; width: min(600px, 100%); border-radius: 16px; padding: 35px; position: relative; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+        .modal-close { position: absolute; right: 20px; top: 15px; font-size: 25px; cursor: pointer; color: #666; }
+        .modal-close:hover { color: #000; }
         .modal-content h2 { margin-bottom: 20px; }
-        .modal-form { display: grid; gap: 15px; }
-        .modal-form input, .modal-form select { width: 100%; padding: 13px; border: 1px solid #ddd; border-radius: 5px; }
+        .modal-form { display: grid; gap: 16px; }
+        .modal-form input, .modal-form select { width: 100%; height: 50px; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 0 16px; font-size: 14px; background: #fafafa; outline: none; }
+        .modal-form input:focus, .modal-form select:focus { border-color: #f4a261; background: #fff; box-shadow: 0 0 0 4px rgba(244,162,97,0.12); }
+        .modal-form button.btn-primary { height: 52px; border-radius: 10px; margin-top: 5px; }
 
-        .notification-banner { display: none; position: fixed; top: 20px; right: 20px; background: #222; color: #fff; padding: 15px 25px; border-radius: 6px; z-index: 3000; box-shadow: 0 5px 20px rgba(0,0,0,0.2); }
+        .notification-banner { display: none; position: fixed; top: 20px; right: 20px; background: #222; color: #fff; padding: 15px 25px; border-radius: 8px; z-index: 3000; box-shadow: 0 5px 20px rgba(0,0,0,0.2); }
         .notification-banner.active { display: block; }
 
+        @media(max-width: 1100px) {
+            .booking-grid { grid-template-columns: 1fr 1fr; }
+        }
         @media(max-width: 1000px) {
-            nav { display: none; position: absolute; top: 75px; right: 4%; background: #fff; color: #222; padding: 20px; flex-direction: column; width: 230px; border-radius: 7px; box-shadow: 0 10px 30px rgba(0,0,0,.15); }
+            nav { display: none; position: absolute; top: 75px; right: 4%; background: #fff; color: #222; padding: 20px; flex-direction: column; width: 230px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,.15); }
             nav.active { display: flex; }
             .mobile-menu { display: block; }
-            .booking-grid { grid-template-columns: 1fr 1fr; }
-            .destination-grid, .things-grid, .features { grid-template-columns: repeat(2, 1fr); }
+            .destination-grid, .things-grid, .features, .blog-grid { grid-template-columns: repeat(2, 1fr); }
         }
 
         @media(max-width: 700px) {
@@ -198,8 +201,8 @@
                     <select id="tourSelect">
                         <option value="">Select a tour</option>
                         <option value="Alicia Panoramic Park Tour">Alicia Panoramic Park Tour</option>
+                        <option value="Bohol Island Hopping">Bohol Island Hopping</option>
                         <option value="Bohol Countryside Tour" disabled>Bohol Countryside Tour (Soon)</option>
-                        <option value="Bohol Island Hopping" disabled>Bohol Island Hopping (Soon)</option>
                     </select>
                 </div>
                 <div class="field">
@@ -229,17 +232,16 @@
                     </select>
                 </div>
                 <div class="field">
-                    <label>GUESTS</label>
+                    <label>GUESTS / BOAT SIZE</label>
                     <select id="guestSelect">
-                        <option value="1">1 Guest</option>
-                        <option value="2">2 Guests</option>
-                        <option value="3">3 Guests</option>
-                        <option value="4">4 Guests</option>
-                        <option value="5">5 Guests (Max)</option>
+                        <option value="1">1-5 Guests (Small Boat - ₱3,500)</option>
+                        <option value="6">6-10 Guests (Small Boat - ₱4,000)</option>
+                        <option value="11">11-14 Guests (Small Boat - ₱4,500)</option>
+                        <option value="20">Up to 20 Guests (Medium Boat - ₱8,500)</option>
+                        <option value="26">Up to 26 Guests (Big Boat - ₱10,500)</option>
                     </select>
                 </div>
                 <div>
-                    <label>&nbsp;</label>
                     <button class="btn btn-primary" onclick="searchBooking()">Search</button>
                 </div>
             </div>
@@ -285,7 +287,7 @@
                     <h3>Alicia Panoramic Park Tour</h3>
                     <p>Hike through beautiful mountain landscapes and enjoy spectacular panoramic views.</p>
                     <div class="tour-bottom">
-                        <div class="price">₱750 <small>/ group (max 5 guests)</small></div>
+                        <div class="price">₱750 <small>/ group (max 5)</small></div>
                         <button class="btn btn-outline" onclick="openBooking('Alicia Panoramic Park Tour')">Book</button>
                     </div>
                 </div>
@@ -301,10 +303,10 @@
                         <span>⭐ 4.8</span>
                     </div>
                     <h3>Bohol Island Hopping</h3>
-                    <p>Explore beautiful islands, snorkeling spots and crystal-clear waters.</p>
+                    <p>Explore beautiful islands, snorkeling spots and crystal-clear waters with small, medium, or large boats.</p>
                     <div class="tour-bottom">
-                        <div class="status-soon">Available Soon</div>
-                        <button class="btn btn-outline" disabled style="opacity: 0.6; cursor: not-allowed;">Available Soon</button>
+                        <div class="price">₱3,500+ <small>/ boat charter</small></div>
+                        <button class="btn btn-outline" onclick="openBooking('Bohol Island Hopping')">Book</button>
                     </div>
                 </div>
             </article>
@@ -443,7 +445,7 @@
                     <small>BOHOL TRAVEL</small>
                     <h3>10 Best Places To Visit In Bohol</h3>
                     <p>Discover the destinations you shouldn't miss during your Bohol trip.</p>
-                    <a href="/blog-1.html" class="btn btn-outline" style="padding: 10px 20px; font-size: 14px;">Read More</a>
+                    <a href="blog-1.html" class="btn btn-outline" style="padding: 10px 20px; font-size: 14px;">Read More</a>
                 </div>
             </article>
 
@@ -453,7 +455,7 @@
                     <small>TRAVEL GUIDE</small>
                     <h3>Best Time To Visit Bohol</h3>
                     <p>Learn when to visit Bohol for the best weather and experiences.</p>
-                    <a href="/blog-2.html" class="btn btn-outline" style="padding: 10px 20px; font-size: 14px;">Read More</a>
+                    <a href="blog-2.html" class="btn btn-outline" style="padding: 10px 20px; font-size: 14px;">Read More</a>
                 </div>
             </article>
 
@@ -463,7 +465,17 @@
                     <small>ADVENTURE</small>
                     <h3>Guide To Alicia Panoramic Park Tour</h3>
                     <p>Everything you need to know before visiting Alicia.</p>
-                    <a href="/blog-3.html" class="btn btn-outline" style="padding: 10px 20px; font-size: 14px;">Read More</a>
+                    <a href="blog-3.html" class="btn btn-outline" style="padding: 10px 20px; font-size: 14px;">Read More</a>
+                </div>
+            </article>
+
+            <article class="blog-card">
+                <div class="blog-image"><img src="diving.webp" onerror="this.src='https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1000&q=80'"></div>
+                <div class="blog-content">
+                    <small>ISLAND GUIDE</small>
+                    <h3>Bohol Island Hopping Adventure</h3>
+                    <p>Discover dolphin watching, Balicasag Island turtle snorkeling, and Virgin Island sand bars.</p>
+                    <a href="blog-4.html" class="btn btn-outline" style="padding: 10px 20px; font-size: 14px;">Read More</a>
                 </div>
             </article>
         </div>
@@ -549,12 +561,12 @@
                 <option value="08:00 PM">08:00 PM</option>
             </select>
             <select id="modalGuests" required>
-                <option value="">Select number of guests</option>
-                <option value="1">1 Guest</option>
-                <option value="2">2 Guests</option>
-                <option value="3">3 Guests</option>
-                <option value="4">4 Guests</option>
-                <option value="5">5 Guests (Max)</option>
+                <option value="">Select number of guests / boat size</option>
+                <option value="1">1-5 Guests (Small Boat - ₱3,500)</option>
+                <option value="6">6-10 Guests (Small Boat - ₱4,000)</option>
+                <option value="11">11-14 Guests (Small Boat - ₱4,500)</option>
+                <option value="20">Up to 20 Guests (Medium Boat - ₱8,500)</option>
+                <option value="26">Up to 26 Guests (Big Boat - ₱10,500)</option>
             </select>
             <button type="submit" id="submitBtn" class="btn btn-primary">Proceed to Payment</button>
         </form>
