@@ -109,10 +109,13 @@ app.post('/api/create-checkout-session', async (req, res) => {
         const data = await response.json();
 
         if (response.ok && data.data && data.data.attributes && data.data.attributes.checkout_url) {
-            // Send confirmation email via Resend using payments@aliciapanoramicpark.com
+            // Send emails via Resend (Customer Confirmation & Admin Notification)
             try {
+                const senderEmail = process.env.RESEND_FROM_EMAIL || 'TAPP Tours <payments@aliciapanoramicpark.com>';
+
+                // 1. Send confirmation email to customer
                 await resend.emails.send({
-                    from: process.env.RESEND_FROM_EMAIL || 'TAPP Tours <payments@aliciapanoramicpark.com>',
+                    from: senderEmail,
                     to: customerEmail,
                     subject: `Your Booking Reservation: ${tour}`,
                     html: `
@@ -129,6 +132,29 @@ app.post('/api/create-checkout-session', async (req, res) => {
                             </ul>
                             <p>Please complete your payment through the secure link provided at checkout.</p>
                             <p>Warm regards,<br><strong>TAPP Tours Team</strong></p>
+                        </div>
+                    `
+                });
+
+                // 2. Send notification email to admin (ferdinandctutor@gmail.com)
+                await resend.emails.send({
+                    from: senderEmail,
+                    to: 'ferdinandctutor@gmail.com',
+                    subject: `[New Booking Alert] ${tour} - ${customerName}`,
+                    html: `
+                        <div style="font-family: Arial, sans-serif; padding: 20px; color: #222;">
+                            <h2 style="color: #12B76A;">New Booking / Payment Session Created</h2>
+                            <p>A customer has initiated a checkout session on TAPP Tours:</p>
+                            <ul>
+                                <li><strong>Customer Name:</strong> ${customerName}</li>
+                                <li><strong>Email:</strong> ${customerEmail}</li>
+                                <li><strong>Phone:</strong> ${customerPhone}</li>
+                                <li><strong>Tour:</strong> ${tour}</li>
+                                <li><strong>Date:</strong> ${bookingDate}</li>
+                                <li><strong>Time Slot:</strong> ${tourTime || '04:00 AM'}</li>
+                                <li><strong>Guests / Boat Tier:</strong> ${guests}</li>
+                                <li><strong>Total Amount:</strong> ₱${amountPHP.toLocaleString()}</li>
+                            </ul>
                         </div>
                     `
                 });
