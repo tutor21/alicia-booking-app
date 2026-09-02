@@ -45,7 +45,6 @@
     </div>
 </section>
 
-<!-- BOOKING WIDGET BAR -->
 <section class="max-w-6xl mx-auto px-4 -mt-24 relative z-30 mb-20" id="booking">
     <div class="bg-white rounded-3xl shadow-xl border border-stone-200/80 p-6 sm:p-10">
         <h3 class="text-2xl font-bold text-stone-900 mb-6 tracking-tight">Find Your Bohol Experience</h3>
@@ -102,7 +101,6 @@
     </div>
 </section>
 
-<!-- TOURS SECTION -->
 <section class="max-w-7xl mx-auto px-4 sm:px-6 py-12" id="tours">
     <div class="text-center max-w-2xl mx-auto mb-16">
         <span class="text-xs font-bold uppercase tracking-widest text-emerald-700 bg-emerald-50 px-3.5 py-1.5 rounded-full border border-emerald-200">Popular Experiences</span>
@@ -184,7 +182,6 @@
     </div>
 </section>
 
-<!-- DESTINATIONS -->
 <section class="bg-stone-100/70 py-20 border-y border-stone-200/60" id="destinations">
     <div class="max-w-7xl mx-auto px-4 sm:px-6">
         <div class="text-center max-w-2xl mx-auto mb-16">
@@ -226,7 +223,6 @@
     </div>
 </section>
 
-<!-- TRAVEL GUIDE / BLOGS -->
 <section class="max-w-7xl mx-auto px-4 sm:px-6 py-20" id="blog">
     <div class="text-center max-w-2xl mx-auto mb-16">
         <span class="text-xs font-bold uppercase tracking-widest text-emerald-700 bg-emerald-50 px-3.5 py-1.5 rounded-full border border-emerald-200">Bohol Travel Guide</span>
@@ -339,8 +335,8 @@
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-stone-600 mb-1">Phone Number</label>
-                    <input type="tel" id="modalPhone" placeholder="09171234567" required class="w-full h-12 bg-stone-50 border border-stone-200 rounded-xl px-4 text-sm outline-none focus:ring-2 focus:ring-emerald-600">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-stone-600 mb-1">Phone Number (Digits Only)</label>
+                    <input type="tel" id="modalPhone" placeholder="09171234567" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required class="w-full h-12 bg-stone-50 border border-stone-200 rounded-xl px-4 text-sm outline-none focus:ring-2 focus:ring-emerald-600">
                 </div>
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider text-stone-600 mb-1">Tour Date</label>
@@ -395,6 +391,20 @@
 </div>
 
 <script>
+    function initializeDates() {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const tomorrowStr = tomorrow.toISOString().split('T')[0];
+        
+        const bookingDateEl = document.getElementById("bookingDate");
+        const modalDateEl = document.getElementById("modalBookingDate");
+        
+        if (bookingDateEl) bookingDateEl.min = tomorrowStr;
+        if (modalDateEl) modalDateEl.min = tomorrowStr;
+    }
+
+    initializeDates();
+
     function toggleMenu() {
         const nav = document.getElementById("navigation");
         nav.classList.toggle("hidden");
@@ -504,6 +514,13 @@
             showNotification("Please select an available tour and date.");
             return;
         }
+
+        const todayStr = new Date().toISOString().split('T')[0];
+        if (date <= todayStr) {
+            showNotification("Same-day bookings are not allowed. Please select a date starting from tomorrow.");
+            return;
+        }
+
         openBooking(tour, date, time, guests);
     }
 
@@ -513,6 +530,13 @@
         const termsChecked = document.getElementById("termsCheckbox").checked;
         if (!termsChecked) {
             showNotification("You must accept the Terms & Conditions to proceed.");
+            return;
+        }
+
+        const dateVal = document.getElementById('modalBookingDate').value;
+        const todayStr = new Date().toISOString().split('T')[0];
+        if (dateVal <= todayStr) {
+            showNotification("Same-day bookings are not allowed. Please choose a future date.");
             return;
         }
 
