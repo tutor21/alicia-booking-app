@@ -127,7 +127,7 @@ app.post('/api/create-checkout-session', bookingRateLimiter, async (req, res) =>
         const authHeader = 'Basic ' + Buffer.from(activeSecretKey + ':').toString('base64');
         const domain = req.headers.host || 'localhost:3000';
         const protocol = req.headers['x-forwarded-proto'] || 'http';
-        const successUrl = `${protocol}://${domain}/success.html?session_id={CHECKOUT_SESSION_ID}`;
+        const successUrl = `${protocol}://${domain}/success.html`;
         const cancelUrl = `${protocol}://${domain}/index.html`;
 
         const itemDescription = tour === 'Alicia Panoramic Park Tour' 
