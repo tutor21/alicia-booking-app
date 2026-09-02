@@ -11,7 +11,10 @@ const PORT = process.env.PORT || 3000;
 // ==========================================
 // SECURITY: Helmet HTTP Headers & Payload Limit
 // ==========================================
-app.use(helmet());
+app.use(helmet({
+    contentSecurityPolicy: false, // Allows Tailwind CSS CDN and external assets to load properly
+    crossOriginEmbedderPolicy: false
+}));
 app.use(express.json({ limit: '10kb' }));
 
 // ==========================================
