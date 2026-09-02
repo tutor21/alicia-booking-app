@@ -180,14 +180,15 @@ app.post('/api/create-checkout-session', bookingRateLimiter, async (req, res) =>
                     payment_method_types: ['card', 'gcash', 'paymaya', 'qrph'],
                     success_url: successUrl,
                     cancel_url: cancelUrl,
-                    description: `Booking for ${tour} on ${bookingDate} at ${tourTime || '04:00 AM'} (IP: ${clientIp})`,
+                    description: `${tour} | Date: ${bookingDate} (${tourTime || '04:00 AM'}) | Phone: ${formattedPhone} | IP: ${clientIp}`,
                     metadata: {
                         customerName,
                         customerEmail,
                         customerPhone: formattedPhone,
                         bookingDate,
                         tourTime: tourTime || '04:00 AM',
-                        guests: String(guests)
+                        guests: String(guests),
+                        clientIp: clientIp
                     }
                 }
             }
@@ -304,6 +305,8 @@ app.post('/api/verify-payment', async (req, res) => {
             const customerName = attr.billing ? attr.billing.name : 'Guest';
             const customerEmail = attr.billing ? attr.billing.email : '';
             const customerPhone = attr.billing ? attr.billing.phone : '';
+            const metadata = attr.metadata || {};
+            const clientIp = metadata.clientIp || 'Unknown IP';
             const itemName = attr.line_items && attr.line_items[0] ? attr.line_items[0].name : 'Tour Booking';
             const amountPaid = attr.line_items && attr.line_items[0] ? attr.line_items[0].amount / 100 : 0;
 
@@ -323,6 +326,7 @@ app.post('/api/verify-payment', async (req, res) => {
                                     <li><strong>Customer Name:</strong> ${customerName}</li>
                                     <li><strong>Email:</strong> ${customerEmail}</li>
                                     <li><strong>Phone:</strong> ${customerPhone}</li>
+                                    <li><strong>Client IP:</strong> ${clientIp}</li>
                                     <li><strong>Item / Tour:</strong> ${itemName}</li>
                                     <li><strong>Amount Paid:</strong> ₱${amountPaid.toLocaleString()}</li>
                                     <li><strong>Session ID:</strong> ${sessionId}</li>
@@ -382,6 +386,8 @@ app.post('/api/paymongo-webhook', express.raw({ type: 'application/json' }), asy
             const customerName = billing.name || 'Valued Guest';
             const customerEmail = billing.email || '';
             const customerPhone = billing.phone || '';
+            const metadata = sessionData.attributes.metadata || {};
+            const clientIp = metadata.clientIp || 'Unknown IP';
             const lineItems = sessionData.attributes.line_items || [];
             const itemName = lineItems[0] ? lineItems[0].name : 'Tour Booking';
             const amountPaid = lineItems[0] ? lineItems[0].amount / 100 : 0;
@@ -403,6 +409,7 @@ app.post('/api/paymongo-webhook', express.raw({ type: 'application/json' }), asy
                             <li><strong>Customer Name:</strong> ${customerName}</li>
                             <li><strong>Email:</strong> ${customerEmail}</li>
                             <li><strong>Phone:</strong> ${customerPhone}</li>
+                            <li><strong>Client IP:</strong> ${clientIp}</li>
                             <li><strong>Tour / Item:</strong> ${itemName}</li>
                             <li><strong>Amount Paid:</strong> ₱${amountPaid.toLocaleString()}</li>
                             <li><strong>Session ID:</strong> ${sessionId}</li>
@@ -422,5 +429,5 @@ app.post('/api/paymongo-webhook', express.raw({ type: 'application/json' }), asy
 });
 
 app.listen(PORT, () => {
-    console.log(`TAPP Tours server running on port ${PORT} with Webhook Signature Verification, Email Notifications & E.164 Phone Formatting`);
+    console.log(`TAPP Tours server running on port ${PORT} with Webhook Signature Verification, Email Notifications, Phone & IP Tracking`);
 });
