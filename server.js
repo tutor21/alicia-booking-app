@@ -6,12 +6,71 @@ const { Resend } = require('resend');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
+// ==========================================
+// SECURITY: Secure CORS Policy Configuration
+// ==========================================
+const allowedOrigins = [
+    'https://aliciapanoramicpark.com',
+    'https://www.aliciapanoramicpark.com',
+    'http://localhost:3000',
+    'http://127.0.0.1:3000'
+];
+
+app.use(cors({
+    origin: function (origin, callback) {
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.indexOf(origin) === -1) {
+            return callback(new Error('CORS policy violation: Origin not allowed by TAPP Tours.'), false);
+        }
+        return callback(null, true);
+    },
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 app.use(express.json());
 app.use(express.static('public'));
 
 const resend = new Resend(process.env.RESEND_API_KEY || 're_placeholder');
 
+// ==========================================
+// SECURITY: In-Memory Rate Limiter Middleware
+// ==========================================
+const bookingAttemptStore = new Map();
+const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
+const MAX_ATTEMPTS_PER_WINDOW = 5;
+
+function bookingRateLimiter(req, res, next) {
+    const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'Unknown IP';
+    const now = Date.now();
+
+    if (!bookingAttemptStore.has(clientIp)) {
+        bookingAttemptStore.set(clientIp, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
+        return next();
+    }
+
+    const record = bookingAttemptStore.get(clientIp);
+
+    // Reset window if expired
+    if (now > record.resetTime) {
+        record.count = 1;
+        record.resetTime = now + RATE_LIMIT_WINDOW_MS;
+        return next();
+    }
+
+    // Check if limit exceeded
+    if (record.count >= MAX_ATTEMPTS_PER_WINDOW) {
+        console.warn(`[SECURITY WARNING] Rate limit exceeded for IP address: ${clientIp}`);
+        return res.status(429).json({ 
+            error: 'Too many booking attempts from this network. For security reasons, please try again after 15 minutes.' 
+        });
+    }
+
+    record.count++;
+    next();
+}
+
+// Helper to calculate price and validate guest/boat tiers based on tour selection
 function calculateTourPrice(tour, guests) {
     const pax = parseInt(guests) || 1;
 
@@ -34,11 +93,12 @@ function calculateTourPrice(tour, guests) {
     throw new Error('Invalid tour selection.');
 }
 
-app.post('/api/create-checkout-session', async (req, res) => {
+// Create PayMongo Checkout Session with Rate Limiting & IP Tracking
+app.post('/api/create-checkout-session', bookingRateLimiter, async (req, res) => {
     try {
         const { tour, customerName, customerEmail, customerPhone, bookingDate, tourTime, guests, secretKey, termsAccepted } = req.body;
         
-        // Capture client IP address securely from headers or socket connection
+        // Securely capture client IP address
         const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'Unknown IP';
         console.log(`[BOOKING ATTEMPT] Tour: ${tour}, Email: ${customerEmail}, Client IP: ${clientIp}`);
 
@@ -177,6 +237,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
     }
 });
 
+// Verify Payment and Trigger Admin Success Email
 app.post('/api/verify-payment', async (req, res) => {
     try {
         const { sessionId } = req.body;
@@ -253,6 +314,55 @@ app.post('/api/verify-payment', async (req, res) => {
     }
 });
 
+// ==========================================
+// STEP 4: PAYMONGO WEBHOOK ENDPOINT (Server-to-Server)
+// ==========================================
+app.post('/api/paymongo-webhook', express.json(), async (req, res) => {
+    try {
+        const event = req.body;
+        
+        if (event && event.data && event.data.attributes && event.data.attributes.type === 'checkout_session.payment.paid') {
+            const sessionData = event.data.attributes.data;
+            const billing = sessionData.attributes.billing || {};
+            const customerName = billing.name || 'Valued Guest';
+            const customerEmail = billing.email || '';
+            const lineItems = sessionData.attributes.line_items || [];
+            const itemName = lineItems[0] ? lineItems[0].name : 'Tour Booking';
+            const amountPaid = lineItems[0] ? lineItems[0].amount / 100 : 0;
+            const sessionId = sessionData.id;
+
+            console.log(`[PAYMONGO WEBHOOK] Payment confirmed for session: ${sessionId}`);
+
+            // Send Admin Success Notification Email via Resend
+            const senderEmail = process.env.RESEND_FROM_EMAIL || 'TAPP Tours <onboarding@resend.dev>';
+            await resend.emails.send({
+                from: senderEmail,
+                to: 'ferdinandctutor@gmail.com',
+                subject: `[WEBHOOK SUCCESS] ${itemName} - ${customerName}`,
+                html: `
+                    <div style="font-family: Arial, sans-serif; padding: 20px; color: #222;">
+                        <h2 style="color: #12B76A;">PayMongo Webhook Payment Confirmed!</h2>
+                        <p>A webhook notification was received for a completed payment:</p>
+                        <ul>
+                            <li><strong>Customer Name:</strong> ${customerName}</li>
+                            <li><strong>Email:</strong> ${customerEmail}</li>
+                            <li><strong>Tour / Item:</strong> ${itemName}</li>
+                            <li><strong>Amount Paid:</strong> ₱${amountPaid.toLocaleString()}</li>
+                            <li><strong>Session ID:</strong> ${sessionId}</li>
+                        </ul>
+                    </div>
+                `
+            });
+            console.log('[WEBHOOK ADMIN EMAIL SENT SUCCESSFULLY]');
+        }
+
+        return res.status(200).json({ received: true });
+    } catch (err) {
+        console.error('Webhook error:', err.message);
+        return res.status(400).json({ error: err.message });
+    }
+});
+
 app.listen(PORT, () => {
-    console.log(`TAPP Tours server running on port ${PORT} with PayMongo & IP Tracking`);
+    console.log(`TAPP Tours server running on port ${PORT} with Rate Limiting, IP Tracking, Webhook & Secure CORS`);
 });
