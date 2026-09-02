@@ -16,7 +16,7 @@
         
         <h1 class="text-2xl font-bold text-stone-900 mt-4 mb-2">Booking Confirmed!</h1>
         <p class="text-stone-600 text-sm mb-6 leading-relaxed">
-            Thank you for booking with <strong>Alicia Panoramic Park</strong>. Your payment was successfully processed and verified.
+            Thank you for booking with <strong>Alicia Panoramic Park & TAPP Tours</strong>. Your payment was successfully processed and verified.
         </p>
 
         <div id="sessionBox" class="bg-stone-50 p-3.5 rounded-xl border border-stone-200 text-xs text-stone-500 font-mono mb-6 hidden">
@@ -35,9 +35,20 @@
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const sessionId = urlParams.get('session_id');
+        
         if (sessionId) {
             document.getElementById('sessionIdText').innerText = sessionId;
             document.getElementById('sessionBox').classList.remove('hidden');
+
+            // Automatically call backend verification endpoint to trigger payment success email to admin & customer
+            fetch('/api/verify-payment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sessionId: sessionId })
+            })
+            .then(res => res.json())
+            .then(data => console.log('Payment verification response:', data))
+            .catch(err => console.error('Payment verification error:', err));
         }
     </script>
 </body>
