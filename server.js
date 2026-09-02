@@ -1,4 +1,4 @@
-=require('dotenv').config();
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const { Resend } = require('resend');
@@ -12,7 +12,6 @@ app.use(express.static('public'));
 
 const resend = new Resend(process.env.RESEND_API_KEY || 're_placeholder');
 
-// Helper to calculate price and validate guest/boat tiers based on tour selection
 function calculateTourPrice(tour, guests) {
     const pax = parseInt(guests) || 1;
 
@@ -35,7 +34,6 @@ function calculateTourPrice(tour, guests) {
     throw new Error('Invalid tour selection.');
 }
 
-// Create PayMongo Checkout Session following official Checkout Session Resource specifications
 app.post('/api/create-checkout-session', async (req, res) => {
     try {
         const { tour, customerName, customerEmail, customerPhone, bookingDate, tourTime, guests, secretKey, termsAccepted } = req.body;
@@ -55,7 +53,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
             return res.status(400).json({ error: validationErr.message });
         }
 
-        const amountCents = amountPHP * 100; // PayMongo expects centavos (e.g. ₱750 = 75000)
+        const amountCents = amountPHP * 100; // PayMongo expects centavos
         const activeSecretKey = secretKey || process.env.PAYMONGO_SECRET_KEY;
 
         if (!activeSecretKey) {
@@ -122,19 +120,20 @@ app.post('/api/create-checkout-session', async (req, res) => {
         if (response.ok && data.data && data.data.attributes && data.data.attributes.checkout_url) {
             // Send emails via Resend (Customer Confirmation & Admin Notification)
             try {
-                const senderEmail = process.env.RESEND_FROM_EMAIL || 'TAPP Tours <onboarding@resend.dev>';
+                const senderEmail = process.env.RESEND_FROM_EMAIL || 'TAPP Tours <payments@aliciapanoramicpark.com>';
 
                 // 1. Send confirmation email to customer
                 await resend.emails.send({
                     from: senderEmail,
                     to: customerEmail,
-                    subject: `Your Booking Reservation: ${tour}`,
+                    subject: `Your Booking Reservation: ${tour} (${referenceNumber})`,
                     html: `
                         <div style="font-family: Arial, sans-serif; padding: 20px; color: #222;">
                             <h2 style="color: #f4a261;">Booking Request Received!</h2>
                             <p>Hi <strong>${customerName}</strong>,</p>
                             <p>Thank you for booking with TAPP Tours. Here are your reservation details:</p>
                             <ul>
+                                <li><strong>Reference Number:</strong> ${referenceNumber}</li>
                                 <li><strong>Tour:</strong> ${tour}</li>
                                 <li><strong>Date:</strong> ${bookingDate}</li>
                                 <li><strong>Time Slot:</strong> ${tourTime || '04:00 AM'}</li>
@@ -147,16 +146,17 @@ app.post('/api/create-checkout-session', async (req, res) => {
                     `
                 });
 
-                // 2. Send initial booking notification email to admin (ferdinandctutor@gmail.com)
+                // 2. Send notification email to admin (ferdinandctutor@gmail.com)
                 await resend.emails.send({
                     from: senderEmail,
                     to: 'ferdinandctutor@gmail.com',
-                    subject: `[New Booking Alert] ${tour} - ${customerName}`,
+                    subject: `[New Booking Alert] ${tour} - ${customerName} (${referenceNumber})`,
                     html: `
                         <div style="font-family: Arial, sans-serif; padding: 20px; color: #222;">
                             <h2 style="color: #12B76A;">New Booking / Payment Session Created</h2>
                             <p>A customer has initiated a checkout session on TAPP Tours:</p>
                             <ul>
+                                <li><strong>Reference Number:</strong> ${referenceNumber}</li>
                                 <li><strong>Customer Name:</strong> ${customerName}</li>
                                 <li><strong>Email:</strong> ${customerEmail}</li>
                                 <li><strong>Phone:</strong> ${customerPhone}</li>
@@ -182,82 +182,6 @@ app.post('/api/create-checkout-session', async (req, res) => {
     } catch (err) {
         console.error('Server error:', err);
         return res.status(500).json({ error: err.message || 'Internal server error.' });
-    }
-});
-
-// POST endpoint to verify payment session and send admin success email
-app.post('/api/verify-payment', async (req, res) => {
-    try {
-        const { sessionId } = req.body;
-        if (!sessionId) {
-            return res.status(400).json({ success: false, error: 'Missing session ID.' });
-        }
-
-        const activeSecretKey = process.env.PAYMONGO_SECRET_KEY;
-        if (!activeSecretKey) {
-            return res.status(500).json({ success: false, error: 'PayMongo secret key is not configured.' });
-        }
-
-        const authHeader = 'Basic ' + Buffer.from(activeSecretKey + ':').toString('base64');
-
-        // Retrieve Checkout Session status from PayMongo API
-        const response = await fetch(`https://api.paymongo.com/v1/checkout_sessions/${sessionId}`, {
-            method: 'GET',
-            headers: {
-                accept: 'application/json',
-                authorization: authHeader
-            }
-        });
-
-        const data = await response.json();
-
-        if (response.ok && data.data && data.data.attributes) {
-            const attributes = data.data.attributes;
-            const paymentStatus = attributes.payment_status; // 'paid', 'unpaid', etc.
-            const billing = attributes.billing || {};
-            const lineItems = attributes.line_items || [];
-            const itemName = lineItems[0] ? lineItems[0].name : 'Tour Booking';
-            const amountPaid = lineItems[0] ? (lineItems[0].amount / 100) : 0;
-
-            if (paymentStatus === 'paid') {
-                // Send Admin Success Notification Email
-                try {
-                    const senderEmail = process.env.RESEND_FROM_EMAIL || 'TAPP Tours <onboarding@resend.dev>';
-                    await resend.emails.send({
-                        from: senderEmail,
-                        to: 'ferdinandctutor@gmail.com',
-                        subject: `[PAYMENT SUCCESSFUL] ${itemName} - ${billing.name || 'Guest'}`,
-                        html: `
-                            <div style="font-family: Arial, sans-serif; padding: 20px; color: #222;">
-                                <h2 style="color: #12B76A;">Payment Successfully Completed!</h2>
-                                <p>A customer has successfully completed their payment via PayMongo:</p>
-                                <ul>
-                                    <li><strong>Customer Name:</strong> ${billing.name}</li>
-                                    <li><strong>Email:</strong> ${billing.email}</li>
-                                    <li><strong>Phone:</strong> ${billing.phone}</li>
-                                    <li><strong>Item / Tour:</strong> ${itemName}</li>
-                                    <li><strong>Amount Paid:</strong> ₱${amountPaid.toLocaleString()}</li>
-                                    <li><strong>Session ID:</strong> ${sessionId}</li>
-                                </ul>
-                            </div>
-                        `
-                    });
-                    console.log('[PAYMENT VERIFIED & ADMIN SUCCESS EMAIL SENT]: Session', sessionId);
-                } catch (emailErr) {
-                    console.error('Admin success email error:', emailErr.message);
-                }
-
-                return res.json({ success: true, message: 'Payment verified successfully.' });
-            } else {
-                return res.json({ success: false, error: `Payment status is currently: ${paymentStatus}` });
-            }
-        } else {
-            console.error('PayMongo Verification Error:', data);
-            return res.status(400).json({ success: false, error: 'Could not retrieve session from PayMongo.' });
-        }
-    } catch (err) {
-        console.error('Server verification error:', err);
-        return res.status(500).json({ success: false, error: err.message });
     }
 });
 
