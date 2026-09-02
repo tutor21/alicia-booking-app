@@ -113,18 +113,22 @@ app.post('/api/create-checkout-session', bookingRateLimiter, async (req, res) =>
         const { tour, customerName, customerEmail, customerPhone, bookingDate, tourTime, guests, secretKey, termsAccepted } = req.body;
         
         const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'Unknown IP';
-        console.log(`[BOOKING ATTEMPT] Tour: ${tour}, Email: ${customerEmail}, Client IP: ${clientIp}`);
+        console.log(`[BOOKING ATTEMPT] Tour: ${tour}, Email: ${customerEmail}, Phone: ${customerPhone}, Client IP: ${clientIp}`);
 
         if (!termsAccepted) {
             return res.status(400).json({ error: 'You must accept the Terms & Conditions before proceeding to payment.' });
         }
 
-        if (!tour || !customerEmail || !bookingDate) {
+        if (!tour || !customerEmail || !bookingDate || !customerName) {
             return res.status(400).json({ error: 'Missing required booking details.' });
         }
 
         if (!isValidEmail(customerEmail)) {
             return res.status(400).json({ error: 'Please provide a valid email address format.' });
+        }
+
+        if (!customerPhone || !/^\d{11}$/.test(customerPhone)) {
+            return res.status(400).json({ error: 'A valid 11-digit phone number is required.' });
         }
 
         let amountPHP;
@@ -155,9 +159,9 @@ app.post('/api/create-checkout-session', bookingRateLimiter, async (req, res) =>
             data: {
                 attributes: {
                     billing: {
-                        name: customerName || 'Valued Guest',
+                        name: customerName,
                         email: customerEmail,
-                        phone: customerPhone || '09170000000'
+                        phone: customerPhone
                     },
                     line_items: [
                         {
@@ -170,7 +174,15 @@ app.post('/api/create-checkout-session', bookingRateLimiter, async (req, res) =>
                     payment_method_types: ['card', 'gcash', 'paymaya', 'qrph'],
                     success_url: successUrl,
                     cancel_url: cancelUrl,
-                    description: `Booking for ${tour} on ${bookingDate} at ${tourTime || '04:00 AM'} (IP: ${clientIp})`
+                    description: `Booking for ${tour} on ${bookingDate} at ${tourTime || '04:00 AM'} (IP: ${clientIp})`,
+                    metadata: {
+                        customerName,
+                        customerEmail,
+                        customerPhone,
+                        bookingDate,
+                        tourTime: tourTime || '04:00 AM',
+                        guests: String(guests)
+                    }
                 }
             }
         };
@@ -206,6 +218,7 @@ app.post('/api/create-checkout-session', bookingRateLimiter, async (req, res) =>
                                 <li><strong>Date:</strong> ${bookingDate}</li>
                                 <li><strong>Time Slot:</strong> ${tourTime || '04:00 AM'}</li>
                                 <li><strong>Guests / Boat Tier:</strong> ${guests}</li>
+                                <li><strong>Phone Number:</strong> ${customerPhone}</li>
                                 <li><strong>Total Amount:</strong> ₱${amountPHP.toLocaleString()}</li>
                             </ul>
                             <p>Please complete your payment through the secure PayMongo link.</p>
@@ -284,6 +297,7 @@ app.post('/api/verify-payment', async (req, res) => {
 
             const customerName = attr.billing ? attr.billing.name : 'Guest';
             const customerEmail = attr.billing ? attr.billing.email : '';
+            const customerPhone = attr.billing ? attr.billing.phone : '';
             const itemName = attr.line_items && attr.line_items[0] ? attr.line_items[0].name : 'Tour Booking';
             const amountPaid = attr.line_items && attr.line_items[0] ? attr.line_items[0].amount / 100 : 0;
 
@@ -302,6 +316,7 @@ app.post('/api/verify-payment', async (req, res) => {
                                 <ul>
                                     <li><strong>Customer Name:</strong> ${customerName}</li>
                                     <li><strong>Email:</strong> ${customerEmail}</li>
+                                    <li><strong>Phone:</strong> ${customerPhone}</li>
                                     <li><strong>Item / Tour:</strong> ${itemName}</li>
                                     <li><strong>Amount Paid:</strong> ₱${amountPaid.toLocaleString()}</li>
                                     <li><strong>Session ID:</strong> ${sessionId}</li>
@@ -360,6 +375,7 @@ app.post('/api/paymongo-webhook', express.raw({ type: 'application/json' }), asy
             const billing = sessionData.attributes.billing || {};
             const customerName = billing.name || 'Valued Guest';
             const customerEmail = billing.email || '';
+            const customerPhone = billing.phone || '';
             const lineItems = sessionData.attributes.line_items || [];
             const itemName = lineItems[0] ? lineItems[0].name : 'Tour Booking';
             const amountPaid = lineItems[0] ? lineItems[0].amount / 100 : 0;
@@ -380,6 +396,7 @@ app.post('/api/paymongo-webhook', express.raw({ type: 'application/json' }), asy
                         <ul>
                             <li><strong>Customer Name:</strong> ${customerName}</li>
                             <li><strong>Email:</strong> ${customerEmail}</li>
+                            <li><strong>Phone:</strong> ${customerPhone}</li>
                             <li><strong>Tour / Item:</strong> ${itemName}</li>
                             <li><strong>Amount Paid:</strong> ₱${amountPaid.toLocaleString()}</li>
                             <li><strong>Session ID:</strong> ${sessionId}</li>
@@ -399,5 +416,5 @@ app.post('/api/paymongo-webhook', express.raw({ type: 'application/json' }), asy
 });
 
 app.listen(PORT, () => {
-    console.log(`TAPP Tours server running on port ${PORT} with Webhook Signature Verification, Email Notifications & Security Protections`);
+    console.log(`TAPP Tours server running on port ${PORT} with Webhook Signature Verification, Email Notifications & 11-digit Phone Support`);
 });
