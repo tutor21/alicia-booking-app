@@ -145,6 +145,12 @@ app.post('/api/create-checkout-session', bookingRateLimiter, async (req, res) =>
             return res.status(500).json({ error: 'PayMongo secret key is not configured.' });
         }
 
+        // Format phone number to E.164 (+63...) for PayMongo compatibility
+        let formattedPhone = customerPhone;
+        if (formattedPhone && formattedPhone.startsWith('0') && formattedPhone.length === 11) {
+            formattedPhone = '+63' + formattedPhone.slice(1);
+        }
+
         const authHeader = 'Basic ' + Buffer.from(activeSecretKey + ':').toString('base64');
         const domain = req.headers.host || 'localhost:3000';
         const protocol = req.headers['x-forwarded-proto'] || 'http';
@@ -161,7 +167,7 @@ app.post('/api/create-checkout-session', bookingRateLimiter, async (req, res) =>
                     billing: {
                         name: customerName,
                         email: customerEmail,
-                        phone: customerPhone
+                        phone: formattedPhone
                     },
                     line_items: [
                         {
@@ -178,7 +184,7 @@ app.post('/api/create-checkout-session', bookingRateLimiter, async (req, res) =>
                     metadata: {
                         customerName,
                         customerEmail,
-                        customerPhone,
+                        customerPhone: formattedPhone,
                         bookingDate,
                         tourTime: tourTime || '04:00 AM',
                         guests: String(guests)
@@ -416,5 +422,5 @@ app.post('/api/paymongo-webhook', express.raw({ type: 'application/json' }), asy
 });
 
 app.listen(PORT, () => {
-    console.log(`TAPP Tours server running on port ${PORT} with Webhook Signature Verification, Email Notifications & 11-digit Phone Support`);
+    console.log(`TAPP Tours server running on port ${PORT} with Webhook Signature Verification, Email Notifications & E.164 Phone Formatting`);
 });
