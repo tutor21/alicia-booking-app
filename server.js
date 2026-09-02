@@ -1,10 +1,18 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
+const crypto = require('crypto');
 const { Resend } = require('resend');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// ==========================================
+// SECURITY: Helmet HTTP Headers & Payload Limit
+// ==========================================
+app.use(helmet());
+app.use(express.json({ limit: '10kb' }));
 
 // ==========================================
 // SECURITY: Secure CORS Policy Configuration
@@ -28,7 +36,6 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-app.use(express.json());
 app.use(express.static('public'));
 
 const resend = new Resend(process.env.RESEND_API_KEY || 're_placeholder');
@@ -70,6 +77,12 @@ function bookingRateLimiter(req, res, next) {
     next();
 }
 
+// Helper for strict email validation
+function isValidEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+}
+
 // Helper to calculate price and validate guest/boat tiers based on tour selection
 function calculateTourPrice(tour, guests) {
     const pax = parseInt(guests) || 1;
@@ -93,7 +106,7 @@ function calculateTourPrice(tour, guests) {
     throw new Error('Invalid tour selection.');
 }
 
-// Create PayMongo Checkout Session with Rate Limiting & IP Tracking
+// Create PayMongo Checkout Session with Rate Limiting, IP Tracking & Email Validation
 app.post('/api/create-checkout-session', bookingRateLimiter, async (req, res) => {
     try {
         const { tour, customerName, customerEmail, customerPhone, bookingDate, tourTime, guests, secretKey, termsAccepted } = req.body;
@@ -108,6 +121,10 @@ app.post('/api/create-checkout-session', bookingRateLimiter, async (req, res) =>
 
         if (!tour || !customerEmail || !bookingDate) {
             return res.status(400).json({ error: 'Missing required booking details.' });
+        }
+
+        if (!isValidEmail(customerEmail)) {
+            return res.status(400).json({ error: 'Please provide a valid email address format.' });
         }
 
         let amountPHP;
@@ -264,7 +281,7 @@ app.post('/api/verify-payment', async (req, res) => {
 
         if (response.ok && data.data) {
             const attr = data.data.attributes;
-            const status = attr.status; // 'active', 'paid', etc.
+            const status = attr.status; 
             const payments = attr.payments || [];
             const isPaid = status === 'paid' || payments.some(p => p.attributes.status === 'paid');
 
@@ -274,7 +291,6 @@ app.post('/api/verify-payment', async (req, res) => {
             const amountPaid = attr.line_items && attr.line_items[0] ? attr.line_items[0].amount / 100 : 0;
 
             if (isPaid) {
-                // Send Admin Success Notification Email
                 try {
                     const senderEmail = process.env.RESEND_FROM_EMAIL || 'TAPP Tours <onboarding@resend.dev>';
                     await resend.emails.send({
@@ -315,11 +331,31 @@ app.post('/api/verify-payment', async (req, res) => {
 });
 
 // ==========================================
-// STEP 4: PAYMONGO WEBHOOK ENDPOINT (Server-to-Server)
+// PAYMONGO WEBHOOK ENDPOINT (With Signature Verification)
 // ==========================================
-app.post('/api/paymongo-webhook', express.json(), async (req, res) => {
+app.post('/api/paymongo-webhook', express.raw({ type: 'application/json' }), async (req, res) => {
     try {
-        const event = req.body;
+        const signatureHeader = req.headers['paymongo-signature'] || req.headers['Paymongo-Signature'];
+        const webhookSecret = process.env.PAYMONGO_WEBHOOK_SECRET;
+
+        if (webhookSecret && signatureHeader) {
+            const elements = signatureHeader.split(',');
+            const timestamp = elements.find(el => el.startsWith('t='))?.split('=')[1];
+            const liveSig = elements.find(el => el.startsWith('te='))?.split('=')[1] || elements.find(el => el.startsWith('li='))?.split('=')[1];
+
+            const signedPayload = `${timestamp}.${req.body.toString()}`;
+            const expectedSig = crypto
+                .createHmac('sha256', webhookSecret)
+                .update(signedPayload)
+                .digest('hex');
+
+            if (liveSig && expectedSig && liveSig !== expectedSig) {
+                console.warn('[SECURITY WARNING] Invalid PayMongo webhook signature!');
+                return res.status(400).json({ error: 'Invalid webhook signature.' });
+            }
+        }
+
+        const event = JSON.parse(req.body.toString());
         
         if (event && event.data && event.data.attributes && event.data.attributes.type === 'checkout_session.payment.paid') {
             const sessionData = event.data.attributes.data;
@@ -333,7 +369,6 @@ app.post('/api/paymongo-webhook', express.json(), async (req, res) => {
 
             console.log(`[PAYMONGO WEBHOOK] Payment confirmed for session: ${sessionId}`);
 
-            // Send Admin Success Notification Email via Resend
             const senderEmail = process.env.RESEND_FROM_EMAIL || 'TAPP Tours <onboarding@resend.dev>';
             await resend.emails.send({
                 from: senderEmail,
@@ -364,5 +399,5 @@ app.post('/api/paymongo-webhook', express.json(), async (req, res) => {
 });
 
 app.listen(PORT, () => {
-    console.log(`TAPP Tours server running on port ${PORT} with Rate Limiting, IP Tracking, Webhook & Secure CORS`);
+    console.log(`TAPP Tours server running on port ${PORT} with Helmet, Rate Limiting, Payload Limiting, Webhook Signature Verification & Secure CORS`);
 });
