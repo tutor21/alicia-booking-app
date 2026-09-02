@@ -11,11 +11,8 @@ app.use(express.json());
 app.use(express.static('public'));
 
 const resend = new Resend(process.env.RESEND_API_KEY || 're_placeholder');
-
-// Keep track of session IDs that have already triggered payment success emails to prevent duplicates
 const processedPaidSessions = new Set();
 
-// Helper to calculate price and validate guest/boat tiers based on tour selection
 function calculateTourPrice(tour, guests) {
     const pax = parseInt(guests) || 1;
 
@@ -38,7 +35,6 @@ function calculateTourPrice(tour, guests) {
     throw new Error('Invalid tour selection.');
 }
 
-// Create PayMongo Checkout Session
 app.post('/api/create-checkout-session', async (req, res) => {
     try {
         const { tour, customerName, customerEmail, customerPhone, bookingDate, tourTime, guests, secretKey, termsAccepted } = req.body;
@@ -112,6 +108,68 @@ app.post('/api/create-checkout-session', async (req, res) => {
         const data = await response.json();
 
         if (response.ok && data.data && data.data.attributes && data.data.attributes.checkout_url) {
+            try {
+                const senderEmail = process.env.RESEND_FROM_EMAIL || 'TAPP Tours <payments@aliciapanoramicpark.com>';
+
+                // 1. Send confirmation email to customer (wrapped separately to avoid blocking admin email)
+                try {
+                    await resend.emails.send({
+                        from: senderEmail,
+                        to: customerEmail,
+                        subject: `Your Booking Reservation: ${tour}`,
+                        html: `
+                            <div style="font-family: Arial, sans-serif; padding: 20px; color: #222;">
+                                <h2 style="color: #f4a261;">Booking Request Received!</h2>
+                                <p>Hi <strong>${customerName}</strong>,</p>
+                                <p>Thank you for booking with TAPP Tours. Here are your reservation details:</p>
+                                <ul>
+                                    <li><strong>Tour:</strong> ${tour}</li>
+                                    <li><strong>Date:</strong> ${bookingDate}</li>
+                                    <li><strong>Time Slot:</strong> ${tourTime || '04:00 AM'}</li>
+                                    <li><strong>Guests / Boat Tier:</strong> ${guests}</li>
+                                    <li><strong>Total Amount:</strong> ₱${amountPHP.toLocaleString()}</li>
+                                </ul>
+                                <p>Please complete your payment through the secure link provided at checkout.</p>
+                                <p>Warm regards,<br><strong>TAPP Tours Team</strong></p>
+                            </div>
+                        `
+                    });
+                } catch (custEmailErr) {
+                    console.error('Customer email delivery notice:', custEmailErr.message);
+                }
+
+                // 2. Guaranteed Admin Notification (ferdinandctutor@gmail.com) for normal and test bookings
+                try {
+                    await resend.emails.send({
+                        from: senderEmail,
+                        to: 'ferdinandctutor@gmail.com',
+                        subject: `[NEW BOOKING / TEST ALERT] ${tour} - ${customerName}`,
+                        html: `
+                            <div style="font-family: Arial, sans-serif; padding: 20px; color: #222;">
+                                <h2 style="color: #12B76A;">🔔 New Booking / Test Session Initiated</h2>
+                                <p>A checkout session or test booking was successfully created:</p>
+                                <ul>
+                                    <li><strong>Customer Name:</strong> ${customerName}</li>
+                                    <li><strong>Email:</strong> ${customerEmail}</li>
+                                    <li><strong>Phone:</strong> ${customerPhone}</li>
+                                    <li><strong>Tour:</strong> ${tour}</li>
+                                    <li><strong>Date:</strong> ${bookingDate}</li>
+                                    <li><strong>Time Slot:</strong> ${tourTime || '04:00 AM'}</li>
+                                    <li><strong>Guests / Boat Tier:</strong> ${guests}</li>
+                                    <li><strong>Total Amount:</strong> ₱${amountPHP.toLocaleString()}</li>
+                                </ul>
+                                <p style="color: #666; font-size: 12px;">This notification confirms your admin alert system is fully functional.</p>
+                            </div>
+                        `
+                    });
+                    console.log('Admin booking notification successfully sent to ferdinandctutor@gmail.com');
+                } catch (adminEmailErr) {
+                    console.error('CRITICAL: Admin booking email failed to send:', adminEmailErr.message);
+                }
+            } catch (emailErr) {
+                console.error('General email dispatch error:', emailErr.message);
+            }
+
             return res.json({ checkoutUrl: data.data.attributes.checkout_url });
         } else {
             console.error('PayMongo Error:', data);
@@ -124,7 +182,6 @@ app.post('/api/create-checkout-session', async (req, res) => {
     }
 });
 
-// Verify Payment & Trigger Success Notifications (Called from success.html upon redirect)
 app.post('/api/verify-payment', async (req, res) => {
     try {
         const { sessionId, secretKey } = req.body;
@@ -143,7 +200,6 @@ app.post('/api/verify-payment', async (req, res) => {
 
         const authHeader = 'Basic ' + Buffer.from(activeSecretKey + ':').toString('base64');
         
-        // Retrieve Checkout Session from PayMongo
         const response = await fetch(`https://api.paymongo.com/v1/checkout_sessions/${sessionId}`, {
             method: 'GET',
             headers: {
@@ -168,61 +224,67 @@ app.post('/api/verify-payment', async (req, res) => {
         const amountPaidPHP = lineItem.amount ? lineItem.amount / 100 : 0;
         const description = attrs.description || '';
 
-        // Mark session as processed to avoid duplicates
         processedPaidSessions.add(sessionId);
 
-        // Send Payment Success Emails via Resend (Admin & Customer)
         try {
             const senderEmail = process.env.RESEND_FROM_EMAIL || 'TAPP Tours <payments@aliciapanoramicpark.com>';
 
             if (customerEmail) {
-                // 1. Send Payment Confirmation Email to Customer
+                try {
+                    await resend.emails.send({
+                        from: senderEmail,
+                        to: customerEmail,
+                        subject: `Payment Confirmed & Booking Successful: ${tourName}`,
+                        html: `
+                            <div style="font-family: Arial, sans-serif; padding: 20px; color: #222;">
+                                <h2 style="color: #12B76A;">Payment Successful!</h2>
+                                <p>Hi <strong>${customerName}</strong>,</p>
+                                <p>We have successfully verified your payment of <strong>₱${amountPaidPHP.toLocaleString()}</strong>.</p>
+                                <p><strong>Booking Details:</strong></p>
+                                <ul>
+                                    <li><strong>Tour / Package:</strong> ${tourName}</li>
+                                    <li><strong>Details:</strong> ${description}</li>
+                                    <li><strong>Session ID:</strong> ${sessionId}</li>
+                                </ul>
+                                <p>Your local tour guide or boat provider will contact you shortly for your meeting arrangements.</p>
+                                <p>Warm regards,<br><strong>TAPP Tours Team</strong></p>
+                            </div>
+                        `
+                    });
+                } catch (custPayErr) {
+                    console.error('Customer payment confirmation email error:', custPayErr.message);
+                }
+            }
+
+            // Guaranteed Admin Success Alert (ferdinandctutor@gmail.com)
+            try {
                 await resend.emails.send({
                     from: senderEmail,
-                    to: customerEmail,
-                    subject: `Payment Confirmed & Booking Successful: ${tourName}`,
+                    to: 'ferdinandctutor@gmail.com',
+                    subject: `[SUCCESSFUL PAYMENT RECEIVED] ${tourName} - ${customerName} (₱${amountPaidPHP.toLocaleString()})`,
                     html: `
                         <div style="font-family: Arial, sans-serif; padding: 20px; color: #222;">
-                            <h2 style="color: #12B76A;">Payment Successful!</h2>
-                            <p>Hi <strong>${customerName}</strong>,</p>
-                            <p>We have successfully verified your payment of <strong>₱${amountPaidPHP.toLocaleString()}</strong>.</p>
-                            <p><strong>Booking Details:</strong></p>
+                            <h2 style="color: #12B76A;">🎉 Payment Successfully Completed!</h2>
+                            <p>A customer has successfully completed their payment on TAPP Tours:</p>
                             <ul>
+                                <li><strong>Customer Name:</strong> ${customerName}</li>
+                                <li><strong>Email:</strong> ${customerEmail}</li>
+                                <li><strong>Phone:</strong> ${customerPhone}</li>
                                 <li><strong>Tour / Package:</strong> ${tourName}</li>
-                                <li><strong>Details:</strong> ${description}</li>
-                                <li><strong>Session ID:</strong> ${sessionId}</li>
+                                <li><strong>Description:</strong> ${description}</li>
+                                <li><strong>Amount Paid:</strong> ₱${amountPaidPHP.toLocaleString()}</li>
+                                <li><strong>PayMongo Session ID:</strong> ${sessionId}</li>
                             </ul>
-                            <p>Your local tour guide or boat provider will contact you shortly for your meeting arrangements.</p>
-                            <p>Warm regards,<br><strong>TAPP Tours Team</strong></p>
+                            <p style="color: #666; font-size: 12px;">Please coordinate with the local guide for guest arrival.</p>
                         </div>
                     `
                 });
+                console.log('Admin payment success notification successfully sent to ferdinandctutor@gmail.com');
+            } catch (adminPayErr) {
+                console.error('CRITICAL: Admin payment success email failed to send:', adminPayErr.message);
             }
-
-            // 2. Send Payment Success Alert Email to Admin (ferdinandctutor@gmail.com)
-            await resend.emails.send({
-                from: senderEmail,
-                to: 'ferdinandctutor@gmail.com',
-                subject: `[PAYMENT RECEIVED] ${tourName} - ${customerName} (₱${amountPaidPHP.toLocaleString()})`,
-                html: `
-                    <div style="font-family: Arial, sans-serif; padding: 20px; color: #222;">
-                        <h2 style="color: #12B76A;">🎉 Successful Payment Received!</h2>
-                        <p>A customer has successfully completed their payment on TAPP Tours:</p>
-                        <ul>
-                            <li><strong>Customer Name:</strong> ${customerName}</li>
-                            <li><strong>Email:</strong> ${customerEmail}</li>
-                            <li><strong>Phone:</strong> ${customerPhone}</li>
-                            <li><strong>Tour / Package:</strong> ${tourName}</li>
-                            <li><strong>Description:</strong> ${description}</li>
-                            <li><strong>Amount Paid:</strong> ₱${amountPaidPHP.toLocaleString()}</li>
-                            <li><strong>PayMongo Session ID:</strong> ${sessionId}</li>
-                        </ul>
-                        <p style="color: #666; font-size: 12px;">Please coordinate with the local guide for guest arrival.</p>
-                    </div>
-                `
-            });
         } catch (emailErr) {
-            console.error('Payment success email sending failed:', emailErr.message);
+            console.error('Payment success email dispatch failed:', emailErr.message);
         }
 
         return res.json({ success: true, message: 'Payment verified and admin notified.' });
