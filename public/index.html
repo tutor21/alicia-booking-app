@@ -324,19 +324,8 @@
             
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-stone-600 mb-1">Full Name</label>
-                    <input type="text" id="modalName" placeholder="Juan Dela Cruz" required class="w-full h-12 bg-stone-50 border border-stone-200 rounded-xl px-4 text-sm outline-none focus:ring-2 focus:ring-emerald-600">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-stone-600 mb-1">Email Address</label>
-                    <input type="email" id="modalEmail" placeholder="juan@example.com" required class="w-full h-12 bg-stone-50 border border-stone-200 rounded-xl px-4 text-sm outline-none focus:ring-2 focus:ring-emerald-600">
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-stone-600 mb-1">Phone Number (Digits Only)</label>
-                    <input type="tel" id="modalPhone" placeholder="09171234567" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required class="w-full h-12 bg-stone-50 border border-stone-200 rounded-xl px-4 text-sm outline-none focus:ring-2 focus:ring-emerald-600">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-stone-600 mb-1">Phone Number (11 Digits)</label>
+                    <input type="tel" id="modalPhone" placeholder="09171234567" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 11)" required class="w-full h-12 bg-stone-50 border border-stone-200 rounded-xl px-4 text-sm outline-none focus:ring-2 focus:ring-emerald-600">
                 </div>
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider text-stone-600 mb-1">Tour Date</label>
@@ -530,6 +519,12 @@
         const termsChecked = document.getElementById("termsCheckbox").checked;
         if (!termsChecked) {
             showNotification("You must accept the Terms & Conditions to proceed.");
+            return;
+        }
+
+        const phoneVal = document.getElementById('modalPhone').value.trim();
+        if (!phoneVal || phoneVal.length !== 11 || !/^\d{11}$/.test(phoneVal)) {
+            showNotification("Please enter a valid 11-digit mobile number (e.g., 09171234567).");
             return;
         }
 
