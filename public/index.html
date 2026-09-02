@@ -40,11 +40,11 @@
         <p class="text-lg sm:text-xl text-stone-200 mb-8 max-w-2xl mx-auto font-light">Explore breathtaking mountain peaks, crystal-clear island waters, and unforgettable outdoor adventures with certified local guides.</p>
         <div class="flex justify-center gap-4 flex-wrap">
             <a href="#tours" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-8 py-4 rounded-full shadow-lg transition-all text-sm tracking-wide">Explore Tours</a>
-            <a href="terms.html" class="bg-white/10 hover:bg-white/20 text-white font-semibold px-8 py-4 rounded-full backdrop-blur-md transition-all text-sm border border-white/20">Read Terms & Conditions</a>
         </div>
     </div>
 </section>
 
+<!-- BOOKING WIDGET BAR -->
 <section class="max-w-6xl mx-auto px-4 -mt-24 relative z-30 mb-20" id="booking">
     <div class="bg-white rounded-3xl shadow-xl border border-stone-200/80 p-6 sm:p-10">
         <h3 class="text-2xl font-bold text-stone-900 mb-6 tracking-tight">Find Your Bohol Experience</h3>
@@ -59,7 +59,7 @@
                 </select>
             </div>
             <div class="space-y-1.5">
-                <label class="block text-xs font-bold uppercase tracking-wider text-stone-500">Date</label>
+                <label class="block text-xs font-bold uppercase tracking-wider text-stone-500">Date (Tomorrow Onward)</label>
                 <input type="date" id="bookingDate" class="w-full h-14 bg-stone-50 border border-stone-200 rounded-2xl px-4 text-sm font-medium text-stone-800 outline-none focus:ring-2 focus:ring-emerald-600">
             </div>
             <div class="space-y-1.5">
@@ -101,6 +101,7 @@
     </div>
 </section>
 
+<!-- TOURS SECTION -->
 <section class="max-w-7xl mx-auto px-4 sm:px-6 py-12" id="tours">
     <div class="text-center max-w-2xl mx-auto mb-16">
         <span class="text-xs font-bold uppercase tracking-widest text-emerald-700 bg-emerald-50 px-3.5 py-1.5 rounded-full border border-emerald-200">Popular Experiences</span>
@@ -109,7 +110,6 @@
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        
         <!-- Countryside Tour -->
         <article class="bg-white rounded-3xl overflow-hidden shadow-sm border border-stone-200/80 flex flex-col transition-all hover:shadow-lg">
             <div class="h-60 overflow-hidden relative">
@@ -142,7 +142,7 @@
                 <h3 class="text-2xl font-bold text-stone-900 mb-3">Alicia Panoramic Park Tour</h3>
                 <p class="text-stone-600 text-sm mb-4">Hike through beautiful mountain landscapes and enjoy spectacular panoramic views with certified local guides.</p>
                 <p class="text-xs text-stone-500 mb-6 bg-stone-50 p-3 rounded-xl border border-stone-200/60 leading-relaxed">
-                    Upon successful payment, an SMS or email will be sent and your local guide in Alicia, Bohol will contact you for further details and meeting arrangement. Read our <a href="blog-3.html" class="text-emerald-700 font-bold underline">Guide To Alicia Panoramic Park Tour</a>.
+                    Upon successful payment, an email will be sent and your local guide in Alicia, Bohol will contact you for further details and meeting arrangement. Read our <a href="blog-3.html" class="text-emerald-700 font-bold underline">Guide To Alicia Panoramic Park Tour</a>.
                 </p>
                 <div class="flex justify-between items-center mt-auto pt-4 border-t border-stone-100">
                     <div>
@@ -167,7 +167,7 @@
                 <h3 class="text-2xl font-bold text-stone-900 mb-3">Bohol Island Hopping</h3>
                 <p class="text-stone-600 text-sm mb-4">Explore beautiful islands, dolphin watching, Balicasag snorkeling, and Virgin Island sand bars with small, medium, or large boats.</p>
                 <p class="text-xs text-stone-500 mb-6 bg-stone-50 p-3 rounded-xl border border-stone-200/60 leading-relaxed">
-                    Upon successful payment, an email or SMS message will be sent for further instructions and meet-up arrangements with the local boat provider in Panglao, Bohol. Read our <a href="blog-4.html" class="text-emerald-700 font-bold underline">Bohol Island Hopping Adventure Blog</a>.
+                    Upon successful payment, an email message will be sent for further instructions and meet-up arrangements with the local boat provider in Panglao, Bohol. Read our <a href="blog-4.html" class="text-emerald-700 font-bold underline">Bohol Island Hopping Adventure Blog</a>.
                 </p>
                 <div class="flex justify-between items-center mt-auto pt-4 border-t border-stone-100">
                     <div>
@@ -178,10 +178,10 @@
                 </div>
             </div>
         </article>
-
     </div>
 </section>
 
+<!-- DESTINATIONS -->
 <section class="bg-stone-100/70 py-20 border-y border-stone-200/60" id="destinations">
     <div class="max-w-7xl mx-auto px-4 sm:px-6">
         <div class="text-center max-w-2xl mx-auto mb-16">
@@ -223,6 +223,7 @@
     </div>
 </section>
 
+<!-- TRAVEL GUIDE / BLOGS -->
 <section class="max-w-7xl mx-auto px-4 sm:px-6 py-20" id="blog">
     <div class="text-center max-w-2xl mx-auto mb-16">
         <span class="text-xs font-bold uppercase tracking-widest text-emerald-700 bg-emerald-50 px-3.5 py-1.5 rounded-full border border-emerald-200">Bohol Travel Guide</span>
@@ -324,11 +325,22 @@
             
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-stone-600 mb-1">Phone Number (11 Digits)</label>
-                    <input type="tel" id="modalPhone" placeholder="09171234567" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 11)" required class="w-full h-12 bg-stone-50 border border-stone-200 rounded-xl px-4 text-sm outline-none focus:ring-2 focus:ring-emerald-600">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-stone-600 mb-1">Full Name</label>
+                    <input type="text" id="modalName" placeholder="Juan Dela Cruz" required class="w-full h-12 bg-stone-50 border border-stone-200 rounded-xl px-4 text-sm outline-none focus:ring-2 focus:ring-emerald-600">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-stone-600 mb-1">Tour Date</label>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-stone-600 mb-1">Email Address</label>
+                    <input type="email" id="modalEmail" placeholder="juan@example.com" required class="w-full h-12 bg-stone-50 border border-stone-200 rounded-xl px-4 text-sm outline-none focus:ring-2 focus:ring-emerald-600">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-stone-600 mb-1">Phone Number (11 Digits)</label>
+                    <input type="tel" id="modalPhone" placeholder="09171234567" maxlength="11" required oninput="this.value = this.value.replace(/\D/g, '').slice(0, 11);" class="w-full h-12 bg-stone-50 border border-stone-200 rounded-xl px-4 text-sm outline-none focus:ring-2 focus:ring-emerald-600">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-stone-600 mb-1">Tour Date (No Same-Day)</label>
                     <input type="date" id="modalBookingDate" required class="w-full h-12 bg-stone-50 border border-stone-200 rounded-xl px-4 text-sm outline-none focus:ring-2 focus:ring-emerald-600">
                 </div>
             </div>
@@ -380,19 +392,20 @@
 </div>
 
 <script>
-    function initializeDates() {
+    function setMinimumDates() {
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
-        const tomorrowStr = tomorrow.toISOString().split('T')[0];
+        const yyyy = tomorrow.getFullYear();
+        const mm = String(tomorrow.getMonth() + 1).padStart(2, '0');
+        const dd = String(tomorrow.getDate()).padStart(2, '0');
+        const minDate = `${yyyy}-${mm}-${dd}`;
         
         const bookingDateEl = document.getElementById("bookingDate");
-        const modalDateEl = document.getElementById("modalBookingDate");
-        
-        if (bookingDateEl) bookingDateEl.min = tomorrowStr;
-        if (modalDateEl) modalDateEl.min = tomorrowStr;
+        const modalBookingDateEl = document.getElementById("modalBookingDate");
+        if (bookingDateEl) bookingDateEl.min = minDate;
+        if (modalBookingDateEl) modalBookingDateEl.min = minDate;
     }
-
-    initializeDates();
+    setMinimumDates();
 
     function toggleMenu() {
         const nav = document.getElementById("navigation");
@@ -408,7 +421,6 @@
         nav.classList.toggle("shadow-xl");
     }
 
-    // Populate guest / boat dropdown based on tour selection
     function updateGuestOptions() {
         const tour = document.getElementById("tourSelect").value;
         const guestSelect = document.getElementById("guestSelect");
@@ -504,9 +516,13 @@
             return;
         }
 
-        const todayStr = new Date().toISOString().split('T')[0];
-        if (date <= todayStr) {
-            showNotification("Same-day bookings are not allowed. Please select a date starting from tomorrow.");
+        const selectedDateObj = new Date(date);
+        const tomorrowObj = new Date();
+        tomorrowObj.setDate(tomorrowObj.getDate() + 1);
+        tomorrowObj.setHours(0,0,0,0);
+
+        if (selectedDateObj < tomorrowObj) {
+            showNotification("Bookings for today or past dates are not allowed. Please choose tomorrow or later.");
             return;
         }
 
@@ -516,22 +532,26 @@
     async function submitBooking(event) {
         event.preventDefault();
         
-        const termsChecked = document.getElementById("termsCheckbox").checked;
-        if (!termsChecked) {
-            showNotification("You must accept the Terms & Conditions to proceed.");
-            return;
-        }
-
-        const phoneVal = document.getElementById('modalPhone').value.trim();
-        if (!phoneVal || phoneVal.length !== 11 || !/^\d{11}$/.test(phoneVal)) {
-            showNotification("Please enter a valid 11-digit mobile number (e.g., 09171234567).");
+        const phone = document.getElementById('modalPhone').value;
+        if (!/^\d{11}$/.test(phone)) {
+            showNotification("Phone number must be exactly 11 digits.");
             return;
         }
 
         const dateVal = document.getElementById('modalBookingDate').value;
-        const todayStr = new Date().toISOString().split('T')[0];
-        if (dateVal <= todayStr) {
-            showNotification("Same-day bookings are not allowed. Please choose a future date.");
+        const selectedDateObj = new Date(dateVal);
+        const tomorrowObj = new Date();
+        tomorrowObj.setDate(tomorrowObj.getDate() + 1);
+        tomorrowObj.setHours(0,0,0,0);
+
+        if (selectedDateObj < tomorrowObj) {
+            showNotification("Bookings for today or past dates are not allowed.");
+            return;
+        }
+
+        const termsChecked = document.getElementById("termsCheckbox").checked;
+        if (!termsChecked) {
+            showNotification("You must accept the Terms & Conditions to proceed.");
             return;
         }
 
@@ -543,8 +563,8 @@
             tour: document.getElementById('modalTour').value,
             customerName: document.getElementById('modalName').value,
             customerEmail: document.getElementById('modalEmail').value,
-            customerPhone: document.getElementById('modalPhone').value,
-            bookingDate: document.getElementById('modalBookingDate').value,
+            customerPhone: phone,
+            bookingDate: dateVal,
             tourTime: document.getElementById('modalTimeSlot').value,
             guests: parseInt(document.getElementById('modalGuests').value),
             termsAccepted: termsChecked
