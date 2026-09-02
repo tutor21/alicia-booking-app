@@ -12,6 +12,7 @@ app.use(express.static('public'));
 
 const resend = new Resend(process.env.RESEND_API_KEY || 're_placeholder');
 
+// Helper to calculate price and validate guest/boat tiers based on tour selection
 function calculateTourPrice(tour, guests) {
     const pax = parseInt(guests) || 1;
 
@@ -34,6 +35,7 @@ function calculateTourPrice(tour, guests) {
     throw new Error('Invalid tour selection.');
 }
 
+// Create PayMongo Checkout Session
 app.post('/api/create-checkout-session', async (req, res) => {
     try {
         const { tour, customerName, customerEmail, customerPhone, bookingDate, tourTime, guests, secretKey, termsAccepted } = req.body;
@@ -63,7 +65,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
         const authHeader = 'Basic ' + Buffer.from(activeSecretKey + ':').toString('base64');
         const domain = req.headers.host || 'localhost:3000';
         const protocol = req.headers['x-forwarded-proto'] || 'http';
-        const successUrl = `${protocol}://${domain}/success.html?session_id={CHECKOUT_SESSION_ID}`;
+        const successUrl = `${protocol}://${domain}/success.html`;
         const cancelUrl = `${protocol}://${domain}/index.html`;
 
         const itemDescription = tour === 'Alicia Panoramic Park Tour' 
@@ -141,6 +143,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
                                 <li><strong>Total Amount:</strong> ₱${amountPHP.toLocaleString()}</li>
                             </ul>
                             <p>Please complete your payment through the secure link provided at checkout.</p>
+                            <p style="background: #fdf6ec; padding: 12px; border-left: 4px solid #f4a261; border-radius: 4px; margin: 15px 0;"><strong>Please take a copy of your payment details for your future reference.</strong></p>
                             <p>Warm regards,<br><strong>TAPP Tours Team</strong></p>
                         </div>
                     `
@@ -166,6 +169,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
                                 <li><strong>Guests / Boat Tier:</strong> ${guests}</li>
                                 <li><strong>Total Amount:</strong> ₱${amountPHP.toLocaleString()}</li>
                             </ul>
+                            <p style="background: #e6f4ea; padding: 12px; border-left: 4px solid #12B76A; border-radius: 4px; margin: 15px 0;"><strong>Please take a copy of your payment details for your future reference.</strong></p>
                         </div>
                     `
                 });
