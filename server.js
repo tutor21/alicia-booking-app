@@ -12,7 +12,6 @@ app.use(express.static('public'));
 
 const resend = new Resend(process.env.RESEND_API_KEY || 're_placeholder');
 
-// Helper to calculate price and validate guest/boat tiers based on tour selection
 function calculateTourPrice(tour, guests) {
     const pax = parseInt(guests) || 1;
 
@@ -35,11 +34,14 @@ function calculateTourPrice(tour, guests) {
     throw new Error('Invalid tour selection.');
 }
 
-// Create PayMongo Checkout Session
 app.post('/api/create-checkout-session', async (req, res) => {
     try {
         const { tour, customerName, customerEmail, customerPhone, bookingDate, tourTime, guests, secretKey, termsAccepted } = req.body;
         
+        // Capture client IP address securely from headers or socket connection
+        const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'Unknown IP';
+        console.log(`[BOOKING ATTEMPT] Tour: ${tour}, Email: ${customerEmail}, Client IP: ${clientIp}`);
+
         if (!termsAccepted) {
             return res.status(400).json({ error: 'You must accept the Terms & Conditions before proceeding to payment.' });
         }
@@ -65,16 +67,13 @@ app.post('/api/create-checkout-session', async (req, res) => {
         const authHeader = 'Basic ' + Buffer.from(activeSecretKey + ':').toString('base64');
         const domain = req.headers.host || 'localhost:3000';
         const protocol = req.headers['x-forwarded-proto'] || 'http';
-        const successUrl = `${protocol}://${domain}/success.html`;
+        const successUrl = `${protocol}://${domain}/success.html?session_id={CHECKOUT_SESSION_ID}`;
         const cancelUrl = `${protocol}://${domain}/index.html`;
 
         const itemDescription = tour === 'Alicia Panoramic Park Tour' 
             ? `${tour} (${tourTime || '04:00 AM'}, ${guests} Guest${guests > 1 ? 's' : ''})` 
             : `${tour} (${tourTime || '04:00 AM'}, Tier: ${guests} Pax)`;
 
-        const referenceNumber = `TAPP-${Date.now().toString().slice(-6)}`;
-
-        // PayMongo Checkout Session Resource Payload
         const paymongoPayload = {
             data: {
                 attributes: {
@@ -94,15 +93,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
                     payment_method_types: ['card', 'gcash', 'paymaya', 'qrph'],
                     success_url: successUrl,
                     cancel_url: cancelUrl,
-                    description: `Booking for ${tour} on ${bookingDate} at ${tourTime || '04:00 AM'}`,
-                    reference_number: referenceNumber,
-                    metadata: {
-                        tour_name: tour,
-                        booking_date: bookingDate,
-                        time_slot: tourTime || '04:00 AM',
-                        guests_count: String(guests),
-                        customer_phone: customerPhone || ''
-                    }
+                    description: `Booking for ${tour} on ${bookingDate} at ${tourTime || '04:00 AM'} (IP: ${clientIp})`
                 }
             }
         };
@@ -120,46 +111,42 @@ app.post('/api/create-checkout-session', async (req, res) => {
         const data = await response.json();
 
         if (response.ok && data.data && data.data.attributes && data.data.attributes.checkout_url) {
-            // Send emails via Resend (Customer Confirmation & Admin Notification)
             try {
-                const senderEmail = process.env.RESEND_FROM_EMAIL || 'TAPP Tours <payments@aliciapanoramicpark.com>';
+                const senderEmail = process.env.RESEND_FROM_EMAIL || 'TAPP Tours <onboarding@resend.dev>';
 
                 // 1. Send confirmation email to customer
                 await resend.emails.send({
                     from: senderEmail,
                     to: customerEmail,
-                    subject: `Your Booking Reservation: ${tour} (${referenceNumber})`,
+                    subject: `Your Booking Reservation: ${tour}`,
                     html: `
                         <div style="font-family: Arial, sans-serif; padding: 20px; color: #222;">
                             <h2 style="color: #f4a261;">Booking Request Received!</h2>
                             <p>Hi <strong>${customerName}</strong>,</p>
                             <p>Thank you for booking with TAPP Tours. Here are your reservation details:</p>
                             <ul>
-                                <li><strong>Reference Number:</strong> ${referenceNumber}</li>
                                 <li><strong>Tour:</strong> ${tour}</li>
                                 <li><strong>Date:</strong> ${bookingDate}</li>
                                 <li><strong>Time Slot:</strong> ${tourTime || '04:00 AM'}</li>
                                 <li><strong>Guests / Boat Tier:</strong> ${guests}</li>
                                 <li><strong>Total Amount:</strong> ₱${amountPHP.toLocaleString()}</li>
                             </ul>
-                            <p>Please complete your payment through the secure link provided at checkout.</p>
-                            <p style="background: #fdf6ec; padding: 12px; border-left: 4px solid #f4a261; border-radius: 4px; margin: 15px 0;"><strong>Please take a copy of your payment details for your future reference.</strong></p>
+                            <p>Please complete your payment through the secure PayMongo link.</p>
                             <p>Warm regards,<br><strong>TAPP Tours Team</strong></p>
                         </div>
                     `
                 });
 
-                // 2. Send notification email to admin (ferdinandctutor@gmail.com)
+                // 2. Send notification email to admin including Client IP
                 await resend.emails.send({
                     from: senderEmail,
                     to: 'ferdinandctutor@gmail.com',
-                    subject: `[New Booking Alert] ${tour} - ${customerName} (${referenceNumber})`,
+                    subject: `[New Booking Alert] ${tour} - ${customerName} (IP: ${clientIp})`,
                     html: `
                         <div style="font-family: Arial, sans-serif; padding: 20px; color: #222;">
-                            <h2 style="color: #12B76A;">New Booking / Payment Session Created</h2>
-                            <p>A customer has initiated a checkout session on TAPP Tours:</p>
+                            <h2 style="color: #12B76A;">New Booking Session Created</h2>
+                            <p>A customer has initiated a checkout session:</p>
                             <ul>
-                                <li><strong>Reference Number:</strong> ${referenceNumber}</li>
                                 <li><strong>Customer Name:</strong> ${customerName}</li>
                                 <li><strong>Email:</strong> ${customerEmail}</li>
                                 <li><strong>Phone:</strong> ${customerPhone}</li>
@@ -168,11 +155,12 @@ app.post('/api/create-checkout-session', async (req, res) => {
                                 <li><strong>Time Slot:</strong> ${tourTime || '04:00 AM'}</li>
                                 <li><strong>Guests / Boat Tier:</strong> ${guests}</li>
                                 <li><strong>Total Amount:</strong> ₱${amountPHP.toLocaleString()}</li>
+                                <li><strong>Client IP Address:</strong> ${clientIp}</li>
                             </ul>
-                            <p style="background: #e6f4ea; padding: 12px; border-left: 4px solid #12B76A; border-radius: 4px; margin: 15px 0;"><strong>Please take a copy of your payment details for your future reference.</strong></p>
                         </div>
                     `
                 });
+                console.log('[BOOKING EMAILS SENT SUCCESSFULLY]');
             } catch (emailErr) {
                 console.error('Email sending failed:', emailErr.message);
             }
@@ -189,6 +177,82 @@ app.post('/api/create-checkout-session', async (req, res) => {
     }
 });
 
+app.post('/api/verify-payment', async (req, res) => {
+    try {
+        const { sessionId } = req.body;
+        if (!sessionId) {
+            return res.status(400).json({ success: false, error: 'Missing session ID.' });
+        }
+
+        const activeSecretKey = process.env.PAYMONGO_SECRET_KEY;
+        if (!activeSecretKey) {
+            return res.status(500).json({ success: false, error: 'PayMongo secret key is not configured.' });
+        }
+
+        const authHeader = 'Basic ' + Buffer.from(activeSecretKey + ':').toString('base64');
+
+        const response = await fetch(`https://api.paymongo.com/v1/checkout_sessions/${sessionId}`, {
+            method: 'GET',
+            headers: {
+                accept: 'application/json',
+                authorization: authHeader
+            }
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.data) {
+            const attr = data.data.attributes;
+            const status = attr.status; // 'active', 'paid', etc.
+            const payments = attr.payments || [];
+            const isPaid = status === 'paid' || payments.some(p => p.attributes.status === 'paid');
+
+            const customerName = attr.billing ? attr.billing.name : 'Guest';
+            const customerEmail = attr.billing ? attr.billing.email : '';
+            const itemName = attr.line_items && attr.line_items[0] ? attr.line_items[0].name : 'Tour Booking';
+            const amountPaid = attr.line_items && attr.line_items[0] ? attr.line_items[0].amount / 100 : 0;
+
+            if (isPaid) {
+                // Send Admin Success Notification Email
+                try {
+                    const senderEmail = process.env.RESEND_FROM_EMAIL || 'TAPP Tours <onboarding@resend.dev>';
+                    await resend.emails.send({
+                        from: senderEmail,
+                        to: 'ferdinandctutor@gmail.com',
+                        subject: `[PAYMENT SUCCESSFUL] ${itemName} - ${customerName}`,
+                        html: `
+                            <div style="font-family: Arial, sans-serif; padding: 20px; color: #222;">
+                                <h2 style="color: #12B76A;">PayMongo Payment Successfully Completed!</h2>
+                                <p>A customer has successfully completed their payment:</p>
+                                <ul>
+                                    <li><strong>Customer Name:</strong> ${customerName}</li>
+                                    <li><strong>Email:</strong> ${customerEmail}</li>
+                                    <li><strong>Item / Tour:</strong> ${itemName}</li>
+                                    <li><strong>Amount Paid:</strong> ₱${amountPaid.toLocaleString()}</li>
+                                    <li><strong>Session ID:</strong> ${sessionId}</li>
+                                </ul>
+                            </div>
+                        `
+                    });
+                    console.log('[PAYMENT SUCCESS VERIFIED & ADMIN EMAIL SENT]: Session ID', sessionId);
+                } catch (emailErr) {
+                    console.error('Admin success email error:', emailErr.message);
+                }
+
+                return res.json({ success: true, message: 'Payment verified successfully.' });
+            } else {
+                return res.json({ success: false, error: `Payment status is currently: ${status}` });
+            }
+        } else {
+            console.error('PayMongo Verification Error:', data);
+            return res.status(400).json({ success: false, error: 'Could not retrieve session from PayMongo.' });
+        }
+    } catch (err) {
+        console.error('Server verification error:', err);
+        return res.status(500).json({ success: false, error: err.message });
+    }
+});
+
 app.listen(PORT, () => {
-    console.log(`TAPP Tours server running on port ${PORT}`);
+    console.log(`TAPP Tours server running on port ${PORT} with PayMongo & IP Tracking`);
 });
