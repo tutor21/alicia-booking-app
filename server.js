@@ -58,14 +58,12 @@ function bookingRateLimiter(req, res, next) {
 
     const record = bookingAttemptStore.get(clientIp);
 
-    // Reset window if expired
     if (now > record.resetTime) {
         record.count = 1;
         record.resetTime = now + RATE_LIMIT_WINDOW_MS;
         return next();
     }
 
-    // Check if limit exceeded
     if (record.count >= MAX_ATTEMPTS_PER_WINDOW) {
         console.warn(`[SECURITY WARNING] Rate limit exceeded for IP address: ${clientIp}`);
         return res.status(429).json({ 
@@ -106,12 +104,11 @@ function calculateTourPrice(tour, guests) {
     throw new Error('Invalid tour selection.');
 }
 
-// Create PayMongo Checkout Session with Rate Limiting, IP Tracking & Email Validation
+// Create PayMongo Checkout Session with Rate Limiting, IP Tracking & Email Notifications
 app.post('/api/create-checkout-session', bookingRateLimiter, async (req, res) => {
     try {
         const { tour, customerName, customerEmail, customerPhone, bookingDate, tourTime, guests, secretKey, termsAccepted } = req.body;
         
-        // Securely capture client IP address
         const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'Unknown IP';
         console.log(`[BOOKING ATTEMPT] Tour: ${tour}, Email: ${customerEmail}, Client IP: ${clientIp}`);
 
@@ -134,7 +131,7 @@ app.post('/api/create-checkout-session', bookingRateLimiter, async (req, res) =>
             return res.status(400).json({ error: validationErr.message });
         }
 
-        const amountCents = amountPHP * 100; // PayMongo expects centavos
+        const amountCents = amountPHP * 100;
         const activeSecretKey = secretKey || process.env.PAYMONGO_SECRET_KEY;
 
         if (!activeSecretKey) {
@@ -214,7 +211,7 @@ app.post('/api/create-checkout-session', bookingRateLimiter, async (req, res) =>
                     `
                 });
 
-                // 2. Send notification email to admin including Client IP
+                // 2. Send notification email to admin
                 await resend.emails.send({
                     from: senderEmail,
                     to: 'ferdinandctutor@gmail.com',
@@ -237,9 +234,10 @@ app.post('/api/create-checkout-session', bookingRateLimiter, async (req, res) =>
                         </div>
                     `
                 });
+
                 console.log('[BOOKING EMAILS SENT SUCCESSFULLY]');
-            } catch (emailErr) {
-                console.error('Email sending failed:', emailErr.message);
+            } catch (notifyErr) {
+                console.error('Email dispatch failed:', notifyErr.message);
             }
 
             return res.json({ checkoutUrl: data.data.attributes.checkout_url });
@@ -254,7 +252,7 @@ app.post('/api/create-checkout-session', bookingRateLimiter, async (req, res) =>
     }
 });
 
-// Verify Payment and Trigger Admin Success Email
+// Verify Payment Endpoint
 app.post('/api/verify-payment', async (req, res) => {
     try {
         const { sessionId } = req.body;
@@ -268,13 +266,9 @@ app.post('/api/verify-payment', async (req, res) => {
         }
 
         const authHeader = 'Basic ' + Buffer.from(activeSecretKey + ':').toString('base64');
-
         const response = await fetch(`https://api.paymongo.com/v1/checkout_sessions/${sessionId}`, {
             method: 'GET',
-            headers: {
-                accept: 'application/json',
-                authorization: authHeader
-            }
+            headers: { accept: 'application/json', authorization: authHeader }
         });
 
         const data = await response.json();
@@ -293,6 +287,7 @@ app.post('/api/verify-payment', async (req, res) => {
             if (isPaid) {
                 try {
                     const senderEmail = process.env.RESEND_FROM_EMAIL || 'TAPP Tours <onboarding@resend.dev>';
+
                     await resend.emails.send({
                         from: senderEmail,
                         to: 'ferdinandctutor@gmail.com',
@@ -311,9 +306,10 @@ app.post('/api/verify-payment', async (req, res) => {
                             </div>
                         `
                     });
-                    console.log('[PAYMENT SUCCESS VERIFIED & ADMIN EMAIL SENT]: Session ID', sessionId);
+
+                    console.log('[PAYMENT SUCCESS VERIFIED & ADMIN EMAIL SENT]');
                 } catch (emailErr) {
-                    console.error('Admin success email error:', emailErr.message);
+                    console.error('Success notification error:', emailErr.message);
                 }
 
                 return res.json({ success: true, message: 'Payment verified successfully.' });
@@ -321,7 +317,6 @@ app.post('/api/verify-payment', async (req, res) => {
                 return res.json({ success: false, error: `Payment status is currently: ${status}` });
             }
         } else {
-            console.error('PayMongo Verification Error:', data);
             return res.status(400).json({ success: false, error: 'Could not retrieve session from PayMongo.' });
         }
     } catch (err) {
@@ -370,6 +365,7 @@ app.post('/api/paymongo-webhook', express.raw({ type: 'application/json' }), asy
             console.log(`[PAYMONGO WEBHOOK] Payment confirmed for session: ${sessionId}`);
 
             const senderEmail = process.env.RESEND_FROM_EMAIL || 'TAPP Tours <onboarding@resend.dev>';
+
             await resend.emails.send({
                 from: senderEmail,
                 to: 'ferdinandctutor@gmail.com',
@@ -388,6 +384,7 @@ app.post('/api/paymongo-webhook', express.raw({ type: 'application/json' }), asy
                     </div>
                 `
             });
+
             console.log('[WEBHOOK ADMIN EMAIL SENT SUCCESSFULLY]');
         }
 
@@ -399,5 +396,5 @@ app.post('/api/paymongo-webhook', express.raw({ type: 'application/json' }), asy
 });
 
 app.listen(PORT, () => {
-    console.log(`TAPP Tours server running on port ${PORT} with Helmet, Rate Limiting, Payload Limiting, Webhook Signature Verification & Secure CORS`);
+    console.log(`TAPP Tours server running on port ${PORT} with Webhook Signature Verification, Email Notifications & Security Protections`);
 });
