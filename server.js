@@ -107,7 +107,7 @@ function calculateTourPrice(tour, guests) {
     throw new Error('Invalid tour selection.');
 }
 
-// Create PayMongo Checkout Session with Rate Limiting, IP Tracking & Email Notifications
+// Create PayMongo Checkout Session with Polished UI Description
 app.post('/api/create-checkout-session', bookingRateLimiter, async (req, res) => {
     try {
         const { tour, customerName, customerEmail, customerPhone, bookingDate, tourTime, guests, secretKey, termsAccepted } = req.body;
@@ -161,6 +161,9 @@ app.post('/api/create-checkout-session', bookingRateLimiter, async (req, res) =>
             ? `${tour} (${tourTime || '04:00 AM'}, ${guests} Guest${guests > 1 ? 's' : ''})` 
             : `${tour} (${tourTime || '04:00 AM'}, Tier: ${guests} Pax)`;
 
+        // Clean, polished checkout description
+        const checkoutDescription = `Tour Date: ${bookingDate} • Time: ${tourTime || '04:00 AM'} • Contact: ${formattedPhone}`;
+
         const paymongoPayload = {
             data: {
                 attributes: {
@@ -180,7 +183,7 @@ app.post('/api/create-checkout-session', bookingRateLimiter, async (req, res) =>
                     payment_method_types: ['card', 'gcash', 'paymaya', 'qrph'],
                     success_url: successUrl,
                     cancel_url: cancelUrl,
-                    description: `${tour} | Date: ${bookingDate} (${tourTime || '04:00 AM'}) | Phone: ${formattedPhone} | IP: ${clientIp}`,
+                    description: checkoutDescription,
                     metadata: {
                         customerName,
                         customerEmail,
@@ -429,5 +432,5 @@ app.post('/api/paymongo-webhook', express.raw({ type: 'application/json' }), asy
 });
 
 app.listen(PORT, () => {
-    console.log(`TAPP Tours server running on port ${PORT} with Webhook Signature Verification, Email Notifications, Phone & IP Tracking`);
+    console.log(`TAPP Tours server running on port ${PORT} with Polished Checkout Layout`);
 });
