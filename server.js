@@ -82,7 +82,7 @@ function calculateTourPrice(tour, guests) {
         return 750;
     }
 
-    if (tour === 'Lake Side Camp') {
+    if (tour === 'Lakeside Camp - The Campsite') {
         switch (String(guests)) {
             case '2_pax': case '2': return 750;
             case '4_pax': case '4': return 1050;
@@ -99,7 +99,7 @@ function calculateTourPrice(tour, guests) {
                 if (p === 7) return 2250;
                 if (p === 8) return 2050;
                 if (p === 10) return 2250;
-                throw new Error('Invalid Lake Side Camp tent package selection.');
+                throw new Error('Invalid Lakeside Camp tent package selection.');
         }
     }
 
@@ -163,7 +163,7 @@ app.post('/api/create-checkout-session', bookingRateLimiter, async (req, res) =>
         const successUrl = `${protocol}://${domain}/success.html`;
         const cancelUrl = `${protocol}://${domain}/index.html`;
 
-        const itemDescription = tour === 'Lake Side Camp'
+        const itemDescription = tour === 'Lakeside Camp - The Campsite'
             ? `${tour} (${tourTime || '04:00 AM'}, Tent Package: ${guests})`
             : tour === 'Alicia Panoramic Park Tour' 
             ? `${tour} (${tourTime || '04:00 AM'}, ${guests} Guest${guests > 1 ? 's' : ''})` 
