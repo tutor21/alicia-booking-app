@@ -2,7 +2,6 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
-const crypto = require('crypto');
 const { Resend } = require('resend');
 
 const app = express();
@@ -66,11 +65,17 @@ function bookingRateLimiter(req, res, next) {
 
     record.count++;
     next();
+}
+
+function isValidEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
 function calculateTourPrice(tour, guests, guestCategory) {
     if (tour === 'Alicia Panoramic Park Tour') {
         const pax = parseInt(guests) || 1;
-        if (pax > 5) {
-            throw new Error('Alicia Panoramic Park Tour accommodates a maximum of 5 guests per booking.');
+        if (pax < 1 || pax > 5) {
+            throw new Error('Alicia Panoramic Park Tour accommodates 1 to 5 guests per booking.');
         }
         const baseFee = 500;
         let entranceFeePerPax = 50; // default Boholano
