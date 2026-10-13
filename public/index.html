@@ -396,6 +396,25 @@
                 </div>
             </div>
 
+            <!-- ALICIA TOUR RESIDENCY / ENTRANCE CATEGORY CONTAINER -->
+            <div id="aliciaCategoryContainer" class="hidden space-y-2 bg-stone-50 p-4 rounded-2xl border border-stone-200">
+                <label class="block text-xs font-bold uppercase tracking-wider text-stone-500">Alicia Entrance & Residency Category</label>
+                <div class="space-y-2 text-xs font-medium text-stone-700">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="radio" name="aliciaCategory" value="boholano" checked onchange="updateModalPrice()" class="text-emerald-600 focus:ring-emerald-500">
+                        <span>Boholano (₱50 / guest entrance)</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="radio" name="aliciaCategory" value="outside_bohol" onchange="updateModalPrice()" class="text-emerald-600 focus:ring-emerald-500">
+                        <span>From outside Bohol (₱100 / guest entrance)</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="radio" name="aliciaCategory" value="foreigner" onchange="updateModalPrice()" class="text-emerald-600 focus:ring-emerald-500">
+                        <span>Not a Filipino / Foreigner (₱150 / guest entrance)</span>
+                    </label>
+                </div>
+            </div>
+
             <!-- TERMS AND CONDITIONS CHECKBOX -->
             <div class="flex items-start gap-3 bg-stone-50/80 p-4 rounded-2xl border border-stone-200/80">
                 <input type="checkbox" id="termsCheckbox" required class="mt-0.5 w-4 h-4 text-emerald-600 border-stone-300 rounded focus:ring-emerald-500 cursor-pointer">
@@ -486,61 +505,53 @@
             for (let i = 1; i <= 5; i++) {
                 const el = document.createElement("option");
                 el.value = i;
-                el.innerText = `${i} Guest${i > 1 ? 's' : ''} (₱750 flat group rate)`;
-                guestSelect.appendChild(el);
-            }
-        }
-    }
-
-    updateGuestOptions();
-
-    function populateModalGuests(tourName, selectedVal = '2_pax') {
+    function populateModalGuests(tourName, selectedVal = '1') {
         const modalGuests = document.getElementById("modalGuests");
+        const aliciaContainer = document.getElementById("aliciaCategoryContainer");
         modalGuests.innerHTML = "";
 
-        if (tourName === "Bohol Island Hopping") {
-            const options = [
-                { val: "1", text: "1-5 Guests (Small Boat - ₱3,500)" },
-                { val: "6", text: "6-10 Guests (Small Boat - ₱4,000)" },
-                { val: "11", text: "11-14 Guests (Small Boat - ₱4,500)" },
-                { val: "20", text: "Up to 20 Guests (Medium Boat - ₱8,500)" },
-                { val: "26", text: "Up to 26 Guests (Big Boat - ₱10,500)" }
-            ];
-            options.forEach(opt => {
-                const el = document.createElement("option");
-                el.value = opt.val;
-                el.innerText = opt.text;
-                if (String(selectedVal) === String(opt.val)) {
-                    el.selected = true;
-                }
-                modalGuests.appendChild(el);
-            });
-        } else if (tourName === "Lakeside Camp - The Campsite") {
-            const options = [
-                { val: "2_pax", text: "2 Pax Tent (₱750)" },
-                { val: "4_pax", text: "4 Pax Tent (₱1,050)" },
-                { val: "6_vip_1", text: "6 Pax VIP Tent 1 w/ Electricity and Fan (₱2,750)" },
-                { val: "6_vip_2", text: "6 Pax VIP Tent 2 w/ Electricity and Fan (₱3,050)" },
-                { val: "7_pax", text: "7 Pax with Electricity and Fan (₱2,250)" },
-                { val: "8_pax", text: "8 Pax Tent (₱2,050)" },
-                { val: "10_pax", text: "10 Pax Tent (₱2,250)" }
-            ];
-            options.forEach(opt => {
-                const el = document.createElement("option");
-                el.value = opt.val;
-                el.innerText = opt.text;
-                if (String(selectedVal) === String(opt.val)) {
-                    el.selected = true;
-                }
-                modalGuests.appendChild(el);
-            });
-        } else {
+        if (tourName === "Alicia Panoramic Park Tour") {
+            if (aliciaContainer) aliciaContainer.classList.remove("hidden");
             for (let i = 1; i <= 5; i++) {
                 const el = document.createElement("option");
                 el.value = i;
-                el.innerText = `${i} Guest${i > 1 ? 's' : ''} (₱750 flat group rate)`;
+                el.innerText = `${i} Guest${i > 1 ? 's' : ''} (₱500 base + entrance fees)`;
                 if (parseInt(selectedVal) === i) el.selected = true;
                 modalGuests.appendChild(el);
+            }
+        } else {
+            if (aliciaContainer) aliciaContainer.classList.add("hidden");
+            if (tourName === "Bohol Island Hopping") {
+                const options = [
+                    { val: "1", text: "1-5 Guests (Small Boat - ₱3,500)" },
+                    { val: "6", text: "6-10 Guests (Small Boat - ₱4,000)" },
+                    { val: "11", text: "11-14 Guests (Small Boat - ₱4,500)" },
+                    { val: "20", text: "Up to 20 Guests (Medium Boat - ₱8,500)" },
+                    { val: "26", text: "Up to 26 Guests (Big Boat - ₱10,500)" }
+                ];
+                options.forEach(opt => {
+                    const el = document.createElement("option");
+                    el.value = opt.val;
+                    el.innerText = opt.text;
+                    modalGuests.appendChild(el);
+                });
+            } else if (tourName === "Lakeside Camp - The Campsite") {
+                const options = [
+                    { val: "2_pax", text: "2 Pax Tent (₱750)" },
+                    { val: "4_pax", text: "4 Pax Tent (₱1,050)" },
+                    { val: "6_vip_1", text: "6 Pax VIP Tent 1 w/ Electricity and Fan (₱2,750)" },
+                    { val: "6_vip_2", text: "6 Pax VIP Tent 2 w/ Electricity and Fan (₱3,050)" },
+                    { val: "7_pax", text: "7 Pax with Electricity and Fan (₱2,250)" },
+                    { val: "8_pax", text: "8 Pax Tent (₱2,050)" },
+                    { val: "10_pax", text: "10 Pax Tent (₱2,250)" }
+                ];
+                options.forEach(opt => {
+                    const el = document.createElement("option");
+                    el.value = opt.val;
+                    el.innerText = opt.text;
+                    if (String(selectedVal) === String(opt.val)) el.selected = true;
+                    modalGuests.appendChild(el);
+                });
             }
         }
         updateModalPrice();
@@ -551,7 +562,15 @@
         const val = document.getElementById("modalGuests").value;
         let price = 750;
 
-        if (tour === "Bohol Island Hopping") {
+        if (tour === "Alicia Panoramic Park Tour") {
+            const pax = parseInt(val) || 1;
+            const categoryEl = document.querySelector('input[name="aliciaCategory"]:checked');
+            const category = categoryEl ? categoryEl.value : 'boholano';
+            let entrance = 50;
+            if (category === 'outside_bohol') entrance = 100;
+            else if (category === 'foreigner') entrance = 150;
+            price = 500 + (pax * entrance);
+        } else if (tour === "Bohol Island Hopping") {
             const guestsVal = parseInt(val) || 1;
             if (guestsVal >= 26) price = 10500;
             else if (guestsVal >= 20) price = 8500;
@@ -647,6 +666,8 @@
         btn.disabled = true;
         btn.innerText = 'Creating Secure Checkout Session...';
 
+        const selectedAliciaCat = document.querySelector('input[name="aliciaCategory"]:checked');
+
         const payload = {
             tour: document.getElementById('modalTour').value,
             customerName: document.getElementById('modalName').value,
@@ -655,6 +676,7 @@
             bookingDate: dateVal,
             tourTime: document.getElementById('modalTimeSlot').value,
             guests: document.getElementById('modalGuests').value,
+            guestCategory: selectedAliciaCat ? selectedAliciaCat.value : 'boholano',
             termsAccepted: termsChecked
         };
 

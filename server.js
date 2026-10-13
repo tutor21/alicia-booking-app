@@ -66,20 +66,20 @@ function bookingRateLimiter(req, res, next) {
 
     record.count++;
     next();
-}
-
-function isValidEmail(email) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-}
-
-function calculateTourPrice(tour, guests) {
+function calculateTourPrice(tour, guests, guestCategory) {
     if (tour === 'Alicia Panoramic Park Tour') {
         const pax = parseInt(guests) || 1;
         if (pax > 5) {
             throw new Error('Alicia Panoramic Park Tour accommodates a maximum of 5 guests per booking.');
         }
-        return 750;
+        const baseFee = 500;
+        let entranceFeePerPax = 50; // default Boholano
+        if (guestCategory === 'outside_bohol') {
+            entranceFeePerPax = 100;
+        } else if (guestCategory === 'foreigner') {
+            entranceFeePerPax = 150;
+        }
+        return baseFee + (pax * entranceFeePerPax);
     }
 
     if (tour === 'Lakeside Camp - The Campsite') {
@@ -118,7 +118,7 @@ function calculateTourPrice(tour, guests) {
 
 app.post('/api/create-checkout-session', bookingRateLimiter, async (req, res) => {
     try {
-        const { tour, customerName, customerEmail, customerPhone, bookingDate, tourTime, guests, secretKey, termsAccepted } = req.body;
+        const { tour, customerName, customerEmail, customerPhone, bookingDate, tourTime, guests, guestCategory, secretKey, termsAccepted } = req.body;
         
         const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'Unknown IP';
 
@@ -140,7 +140,7 @@ app.post('/api/create-checkout-session', bookingRateLimiter, async (req, res) =>
 
         let amountPHP;
         try {
-            amountPHP = calculateTourPrice(tour, guests);
+            amountPHP = calculateTourPrice(tour, guests, guestCategory);
         } catch (validationErr) {
             return res.status(400).json({ error: validationErr.message });
         }
@@ -166,7 +166,7 @@ app.post('/api/create-checkout-session', bookingRateLimiter, async (req, res) =>
         const itemDescription = tour === 'Lakeside Camp - The Campsite'
             ? `${tour} (${tourTime || '04:00 AM'}, Tent Package: ${guests})`
             : tour === 'Alicia Panoramic Park Tour' 
-            ? `${tour} (${tourTime || '04:00 AM'}, ${guests} Guest${guests > 1 ? 's' : ''})` 
+            ? `${tour} (${tourTime || '04:00 AM'}, ${guests} Guest${guests > 1 ? 's' : ''}, Residency: ${guestCategory || 'boholano'})` 
             : `${tour} (${tourTime || '04:00 AM'}, Tier: ${guests} Pax)`;
 
         const checkoutDescription = `Tour Date: ${bookingDate} • Time: ${tourTime || '04:00 AM'} • Contact: ${formattedPhone}`;
