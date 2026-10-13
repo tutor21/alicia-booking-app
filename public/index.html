@@ -153,8 +153,8 @@
                 </p>
                 <div class="flex justify-between items-center mt-auto pt-4 border-t border-stone-100">
                     <div>
-                        <span class="text-xl font-extrabold text-stone-900">₱750</span>
-                        <span class="text-xs text-stone-500 block">/ group (max 5)</span>
+                        <span class="text-xl font-extrabold text-stone-900">₱500+</span>
+                        <span class="text-xs text-stone-500 block">/ base fee + entrance</span>
                     </div>
                     <button onclick="openBooking('Alicia Panoramic Park Tour')" class="bg-emerald-800 hover:bg-emerald-900 text-white font-bold px-6 py-2.5 rounded-xl text-xs shadow-md transition-all">Book Now</button>
                 </div>
@@ -314,7 +314,6 @@
     </div>
 </footer>
 
-<!-- MODERN BOOKING MODAL WITH PRICE SUMMARY -->
 <div id="bookingModal" class="hidden fixed inset-0 bg-stone-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto transition-all">
     <div class="bg-white rounded-[2.5rem] max-w-lg w-full p-8 sm:p-10 relative shadow-2xl border border-stone-100 my-8 transform transition-all">
         <button onclick="closeBooking()" class="absolute top-6 right-6 w-10 h-10 bg-stone-100 hover:bg-stone-200 rounded-full flex items-center justify-center text-stone-500 hover:text-stone-900 transition-colors text-xl font-bold">×</button>
@@ -505,6 +504,14 @@
             for (let i = 1; i <= 5; i++) {
                 const el = document.createElement("option");
                 el.value = i;
+                el.innerText = `${i} Guest${i > 1 ? 's' : ''} (₱500 base + entrance fees)`;
+                guestSelect.appendChild(el);
+            }
+        }
+    }
+
+    updateGuestOptions();
+
     function populateModalGuests(tourName, selectedVal = '1') {
         const modalGuests = document.getElementById("modalGuests");
         const aliciaContainer = document.getElementById("aliciaCategoryContainer");
@@ -533,6 +540,7 @@
                     const el = document.createElement("option");
                     el.value = opt.val;
                     el.innerText = opt.text;
+                    if (String(selectedVal) === String(opt.val)) el.selected = true;
                     modalGuests.appendChild(el);
                 });
             } else if (tourName === "Lakeside Camp - The Campsite") {
@@ -591,7 +599,7 @@
         document.getElementById("modalPriceDisplay").innerText = `₱${price.toLocaleString()}.00`;
     }
 
-    function openBooking(tourName, date = '', time = '04:00 AM', guests = '2_pax') {
+    function openBooking(tourName, date = '', time = '04:00 AM', guests = '1') {
         document.getElementById("modalTour").value = tourName;
         if (date) document.getElementById("modalBookingDate").value = date;
         if (time) document.getElementById("modalTimeSlot").value = time;
@@ -718,7 +726,6 @@
     });
 </script>
 
-<!-- FLOATING FACEBOOK MESSENGER BUTTON -->
 <div class="fixed bottom-6 right-6 z-50">
     <a href="https://m.me/aliciapanoramicpark" target="_blank" rel="noopener noreferrer" 
        class="flex items-center justify-center w-14 h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-2xl transition-all transform hover:scale-110 focus:outline-none focus:ring-4 focus:ring-blue-400/50"
