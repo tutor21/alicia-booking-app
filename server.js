@@ -121,9 +121,60 @@ function calculateTourPrice(tour, guests, guestCategory) {
     throw new Error('Invalid tour selection.');
 }
 
+async function createPayPalCheckout(amountPHP, description, returnUrl, cancelUrl, client_id, secret, isSandbox = true) {
+    const baseUrl = isSandbox ? 'https://api-m.sandbox.paypal.com' : 'https://api-m.paypal.com';
+    
+    const auth = Buffer.from(`${client_id}:${secret}`).toString('base64');
+    const tokenRes = await fetch(`${baseUrl}/v1/oauth2/token`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Basic ${auth}`,
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: 'grant_type=client_credentials'
+    });
+    const tokenData = await tokenRes.json();
+    if (!tokenRes.ok || !tokenData.access_token) {
+        throw new Error('Failed to authenticate with PayPal API.');
+    }
+
+    const orderRes = await fetch(`${baseUrl}/v2/checkout/orders`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${tokenData.access_token}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            intent: 'CAPTURE',
+            purchase_units: [{
+                amount: {
+                    currency_code: 'PHP',
+                    value: amountPHP.toFixed(2)
+                },
+                description: description
+            }],
+            application_context: {
+                return_url: returnUrl,
+                cancel_url: cancelUrl,
+                user_action: 'PAY_NOW'
+            }
+        })
+    });
+    const orderData = await orderRes.json();
+    if (!orderRes.ok || !orderData.links) {
+        throw new Error(orderData.message || 'Failed to create PayPal order.');
+    }
+
+    const approveLink = orderData.links.find(l => l.rel === 'approve');
+    if (!approveLink) {
+        throw new Error('PayPal approval link not found.');
+    }
+    return approveLink.href;
+}
+
 app.post('/api/create-checkout-session', bookingRateLimiter, async (req, res) => {
     try {
-        const { tour, customerName, customerEmail, customerPhone, bookingDate, tourTime, guests, guestCategory, secretKey, termsAccepted } = req.body;
+        const { tour, customerName, customerEmail, customerPhone, bookingDate, tourTime, guests, guestCategory, gateway, termsAccepted } = req.body;
         
         const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'Unknown IP';
 
@@ -151,18 +202,11 @@ app.post('/api/create-checkout-session', bookingRateLimiter, async (req, res) =>
         }
 
         const amountCents = amountPHP * 100;
-        const activeSecretKey = secretKey || process.env.PAYMONGO_SECRET_KEY;
-
-        if (!activeSecretKey) {
-            return res.status(500).json({ error: 'PayMongo secret key is not configured.' });
-        }
-
         let formattedPhone = customerPhone;
         if (formattedPhone && formattedPhone.startsWith('0') && formattedPhone.length === 11) {
             formattedPhone = '+63' + formattedPhone.slice(1);
         }
 
-        const authHeader = 'Basic ' + Buffer.from(activeSecretKey + ':').toString('base64');
         const domain = req.headers.host || 'localhost:3000';
         const protocol = req.headers['x-forwarded-proto'] || 'http';
         const successUrl = `${protocol}://${domain}/success.html`;
@@ -176,108 +220,135 @@ app.post('/api/create-checkout-session', bookingRateLimiter, async (req, res) =>
 
         const checkoutDescription = `Tour Date: ${bookingDate} • Time: ${tourTime || '04:00 AM'} • Contact: ${formattedPhone}`;
 
-        const paymongoPayload = {
-            data: {
-                attributes: {
-                    billing: {
-                        name: customerName,
-                        email: customerEmail,
-                        phone: formattedPhone
-                    },
-                    line_items: [
-                        {
-                            amount: amountCents,
-                            currency: 'PHP',
-                            name: itemDescription,
-                            quantity: 1
+        let checkoutUrl = '';
+
+        if (gateway === 'paypal') {
+            const paypalClientId = process.env.PAYPAL_CLIENT_ID;
+            const paypalSecret = process.env.PAYPAL_CLIENT_SECRET;
+            const isSandbox = process.env.PAYPAL_MODE !== 'live';
+
+            if (!paypalClientId || !paypalSecret) {
+                return res.status(500).json({ error: 'PayPal API credentials are not configured on the server.' });
+            }
+
+            try {
+                checkoutUrl = await createPayPalCheckout(amountPHP, itemDescription, successUrl, cancelUrl, paypalClientId, paypalSecret, isSandbox);
+            } catch (ppErr) {
+                return res.status(400).json({ error: ppErr.message || 'PayPal checkout creation failed.' });
+            }
+        } else {
+            const activeSecretKey = process.env.PAYMONGO_SECRET_KEY;
+            if (!activeSecretKey) {
+                return res.status(500).json({ error: 'PayMongo secret key is not configured.' });
+            }
+
+            const authHeader = 'Basic ' + Buffer.from(activeSecretKey + ':').toString('base64');
+            const paymongoPayload = {
+                data: {
+                    attributes: {
+                        billing: {
+                            name: customerName,
+                            email: customerEmail,
+                            phone: formattedPhone
+                        },
+                        line_items: [
+                            {
+                                amount: amountCents,
+                                currency: 'PHP',
+                                name: itemDescription,
+                                quantity: 1
+                            }
+                        ],
+                        payment_method_types: ['card', 'gcash', 'paymaya', 'qrph'],
+                        success_url: successUrl,
+                        cancel_url: cancelUrl,
+                        description: checkoutDescription,
+                        metadata: {
+                            customerName,
+                            customerEmail,
+                            customerPhone: formattedPhone,
+                            bookingDate,
+                            tourTime: tourTime || '04:00 AM',
+                            guests: String(guests),
+                            clientIp: clientIp
                         }
-                    ],
-                    payment_method_types: ['card', 'gcash', 'paymaya', 'qrph'],
-                    success_url: successUrl,
-                    cancel_url: cancelUrl,
-                    description: checkoutDescription,
-                    metadata: {
-                        customerName,
-                        customerEmail,
-                        customerPhone: formattedPhone,
-                        bookingDate,
-                        tourTime: tourTime || '04:00 AM',
-                        guests: String(guests),
-                        clientIp: clientIp
                     }
                 }
+            };
+
+            const response = await fetch('https://api.paymongo.com/v1/checkout_sessions', {
+                method: 'POST',
+                headers: {
+                    accept: 'application/json',
+                    'content-type': 'application/json',
+                    authorization: authHeader
+                },
+                body: JSON.stringify(paymongoPayload)
+            });
+
+            const data = await response.json();
+            if (response.ok && data.data && data.data.attributes && data.data.attributes.checkout_url) {
+                checkoutUrl = data.data.attributes.checkout_url;
+            } else {
+                const errMsg = data.errors && data.errors[0] ? data.errors[0].detail : 'Failed to create PayMongo checkout session.';
+                return res.status(400).json({ error: errMsg });
             }
-        };
-
-        const response = await fetch('https://api.paymongo.com/v1/checkout_sessions', {
-            method: 'POST',
-            headers: {
-                accept: 'application/json',
-                'content-type': 'application/json',
-                authorization: authHeader
-            },
-            body: JSON.stringify(paymongoPayload)
-        });
-
-        const data = await response.json();
-
-        if (response.ok && data.data && data.data.attributes && data.data.attributes.checkout_url) {
-            try {
-                const senderEmail = process.env.RESEND_FROM_EMAIL || 'TAPP Tours <onboarding@resend.dev>';
-
-                await resend.emails.send({
-                    from: senderEmail,
-                    to: customerEmail,
-                    subject: `Your Booking Reservation: ${tour}`,
-                    html: `
-                        <div style="font-family: Arial, sans-serif; padding: 20px; color: #222;">
-                            <h2 style="color: #f4a261;">Booking Request Received!</h2>
-                            <p>Hi <strong>${customerName}</strong>,</p>
-                            <p>Thank you for booking with TAPP Tours. Here are your reservation details:</p>
-                            <ul>
-                                <li><strong>Tour:</strong> ${tour}</li>
-                                <li><strong>Date:</strong> ${bookingDate}</li>
-                                <li><strong>Time Slot:</strong> ${tourTime || '04:00 AM'}</li>
-                                <li><strong>Package / Guests:</strong> ${guests}</li>
-                                <li><strong>Phone Number:</strong> ${customerPhone}</li>
-                                <li><strong>Total Amount:</strong> ₱${amountPHP.toLocaleString()}</li>
-                            </ul>
-                            <p>Please complete your payment through the secure PayMongo link.</p>
-                            <p>Warm regards,<br><strong>TAPP Tours Team</strong></p>
-                        </div>
-                    `
-                });
-
-                await resend.emails.send({
-                    from: senderEmail,
-                    to: 'ferdinandctutor@gmail.com',
-                    subject: `[New Booking Alert] ${tour} - ${customerName} (IP: ${clientIp})`,
-                    html: `
-                        <div style="font-family: Arial, sans-serif; padding: 20px; color: #222;">
-                            <h2 style="color: #12B76A;">New Booking Session Created</h2>
-                            <ul>
-                                <li><strong>Customer Name:</strong> ${customerName}</li>
-                                <li><strong>Email:</strong> ${customerEmail}</li>
-                                <li><strong>Phone:</strong> ${customerPhone}</li>
-                                <li><strong>Tour:</strong> ${tour}</li>
-                                <li><strong>Date:</strong> ${bookingDate}</li>
-                                <li><strong>Time Slot:</strong> ${tourTime || '04:00 AM'}</li>
-                                <li><strong>Package / Guests:</strong> ${guests}</li>
-                                <li><strong>Total Amount:</strong> ₱${amountPHP.toLocaleString()}</li>
-                                <li><strong>Client IP Address:</strong> ${clientIp}</li>
-                            </ul>
-                        </div>
-                    `
-                });
-            } catch (notifyErr) {
-                console.error('Email dispatch failed:', notifyErr.message);
-            }
-
-            return res.json({ checkoutUrl: data.data.attributes.checkout_url });
-        } else {
-            const errMsg = data.errors && data.errors[0] ? data.errors[0].detail : 'Failed to create PayMongo checkout session.';
-            return res.status(400).json({ error: errMsg });
         }
+
+        // Send Email Notifications
+        try {
+            const senderEmail = process.env.RESEND_FROM_EMAIL || 'TAPP Tours <onboarding@resend.dev>';
+
+            await resend.emails.send({
+                from: senderEmail,
+                to: customerEmail,
+                subject: `Your Booking Reservation: ${tour}`,
+                html: `
+                    <div style="font-family: Arial, sans-serif; padding: 20px; color: #222;">
+                        <h2 style="color: #f4a261;">Booking Request Received!</h2>
+                        <p>Hi <strong>${customerName}</strong>,</p>
+                        <p>Thank you for booking with TAPP Tours. Here are your reservation details:</p>
+                        <ul>
+                            <li><strong>Tour:</strong> ${tour}</li>
+                            <li><strong>Date:</strong> ${bookingDate}</li>
+                            <li><strong>Time Slot:</strong> ${tourTime || '04:00 AM'}</li>
+                            <li><strong>Package / Guests:</strong> ${guests}</li>
+                            <li><strong>Phone Number:</strong> ${customerPhone}</li>
+                            <li><strong>Total Amount:</strong> ₱${amountPHP.toLocaleString()}</li>
+                            <li><strong>Payment Gateway:</strong> ${gateway === 'paypal' ? 'PayPal' : 'PayMongo'}</li>
+                        </ul>
+                        <p>Please complete your payment through the secure payment link.</p>
+                        <p>Warm regards,<br><strong>TAPP Tours Team</strong></p>
+                    </div>
+                `
+            });
+
+            await resend.emails.send({
+                from: senderEmail,
+                to: 'ferdinandctutor@gmail.com',
+                subject: `[New Booking Alert] ${tour} - ${customerName} (IP: ${clientIp})`,
+                html: `
+                    <div style="font-family: Arial, sans-serif; padding: 20px; color: #222;">
+                        <h2 style="color: #12B76A;">New Booking Session Created (${gateway === 'paypal' ? 'PayPal' : 'PayMongo'})</h2>
+                        <ul>
+                            <li><strong>Customer Name:</strong> ${customerName}</li>
+                            <li><strong>Email:</strong> ${customerEmail}</li>
+                            <li><strong>Phone:</strong> ${customerPhone}</li>
+                            <li><strong>Tour:</strong> ${tour}</li>
+                            <li><strong>Date:</strong> ${bookingDate}</li>
+                            <li><strong>Time Slot:</strong> ${tourTime || '04:00 AM'}</li>
+                            <li><strong>Package / Guests:</strong> ${guests}</li>
+                            <li><strong>Total Amount:</strong> ₱${amountPHP.toLocaleString()}</li>
+                            <li><strong>Client IP Address:</strong> ${clientIp}</li>
+                        </ul>
+                    </div>
+                `
+            });
+        } catch (notifyErr) {
+            console.error('Email dispatch failed:', notifyErr.message);
+        }
+
+        return res.json({ checkoutUrl });
     } catch (err) {
         return res.status(500).json({ error: err.message || 'Internal server error.' });
     }
