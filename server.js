@@ -32,7 +32,7 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-app.use(express.static('public'));
+app.use(express.static(require('path').join(__dirname, 'public')));
 
 const resend = new Resend(process.env.RESEND_API_KEY || 're_placeholder');
 
