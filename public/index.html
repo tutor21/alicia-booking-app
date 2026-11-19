@@ -449,21 +449,6 @@
                 </p>
             </div>
 
-            <!-- PAYMENT GATEWAY SELECTOR -->
-            <div class="space-y-2 bg-stone-50 p-4 rounded-2xl border border-stone-200">
-                <label class="block text-xs font-bold uppercase tracking-wider text-stone-500">Select Payment Method</label>
-                <div class="grid grid-cols-2 gap-3">
-                    <label class="flex items-center gap-2 p-3 bg-white rounded-xl border border-stone-200 cursor-pointer text-xs font-bold text-stone-800 hover:border-emerald-600 transition-all">
-                        <input type="radio" name="paymentGateway" value="paymongo" checked class="text-emerald-600 focus:ring-emerald-500">
-                        <span>PayMongo (GCash, Cards)</span>
-                    </label>
-                    <label class="flex items-center gap-2 p-3 bg-white rounded-xl border border-stone-200 cursor-pointer text-xs font-bold text-stone-800 hover:border-emerald-600 transition-all">
-                        <input type="radio" name="paymentGateway" value="paypal" class="text-emerald-600 focus:ring-emerald-500">
-                        <span>PayPal (Global Cards)</span>
-                    </label>
-                </div>
-            </div>
-
             <!-- TERMS AND CONDITIONS CHECKBOX -->
             <div class="flex items-start gap-3 bg-stone-50/80 p-4 rounded-2xl border border-stone-200/80">
                 <input type="checkbox" id="termsCheckbox" required class="mt-0.5 w-4 h-4 text-emerald-600 border-stone-300 rounded focus:ring-emerald-500 cursor-pointer">
@@ -480,7 +465,7 @@
 
         <!-- Trust Security Badge -->
         <div class="mt-6 pt-4 border-t border-stone-100 flex items-center justify-center gap-2 text-stone-400 text-xs font-medium">
-            <span>🔒 Encrypted & Secured by PayMongo & PayPal</span>
+            <span>🔒 Encrypted & Secured by PayMongo</span>
         </div>
     </div>
 </div>
@@ -710,7 +695,7 @@
         tomorrowObj.setHours(0,0,0,0);
 
         if (selectedDateObj < tomorrowObj) {
-            showNotification("Booking for today or past dates are not allowed.");
+            showNotification("Bookings for today or past dates are not allowed.");
             return;
         }
 
@@ -725,7 +710,6 @@
         btn.innerText = 'Creating Secure Checkout Session...';
 
         const selectedAliciaCat = document.querySelector('input[name="aliciaCategory"]:checked');
-        const selectedGateway = document.querySelector('input[name="paymentGateway"]:checked').value;
 
         const payload = {
             tour: document.getElementById('modalTour').value,
@@ -736,7 +720,6 @@
             tourTime: document.getElementById('modalTimeSlot').value,
             guests: document.getElementById('modalGuests').value,
             guestCategory: selectedAliciaCat ? selectedAliciaCat.value : 'boholano',
-            gateway: selectedGateway,
             termsAccepted: termsChecked
         };
 

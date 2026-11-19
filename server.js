@@ -32,7 +32,7 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-app.use(express.static(require('path').join(__dirname, 'public')));
+app.use(express.static('public'));
 
 const resend = new Resend(process.env.RESEND_API_KEY || 're_placeholder');
 
@@ -121,60 +121,9 @@ function calculateTourPrice(tour, guests, guestCategory) {
     throw new Error('Invalid tour selection.');
 }
 
-async function createPayPalCheckout(amountPHP, description, returnUrl, cancelUrl, client_id, secret, isSandbox = true) {
-    const baseUrl = isSandbox ? 'https://api-m.sandbox.paypal.com' : 'https://api-m.paypal.com';
-    
-    const auth = Buffer.from(`${client_id}:${secret}`).toString('base64');
-    const tokenRes = await fetch(`${baseUrl}/v1/oauth2/token`, {
-        method: 'POST',
-        headers: {
-            'Authorization': `Basic ${auth}`,
-            'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body: 'grant_type=client_credentials'
-    });
-    const tokenData = await tokenRes.json();
-    if (!tokenRes.ok || !tokenData.access_token) {
-        throw new Error('Failed to authenticate with PayPal API.');
-    }
-
-    const orderRes = await fetch(`${baseUrl}/v2/checkout/orders`, {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${tokenData.access_token}`,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            intent: 'CAPTURE',
-            purchase_units: [{
-                amount: {
-                    currency_code: 'PHP',
-                    value: amountPHP.toFixed(2)
-                },
-                description: description
-            }],
-            application_context: {
-                return_url: returnUrl,
-                cancel_url: cancelUrl,
-                user_action: 'PAY_NOW'
-            }
-        })
-    });
-    const orderData = await orderRes.json();
-    if (!orderRes.ok || !orderData.links) {
-        throw new Error(orderData.message || 'Failed to create PayPal order.');
-    }
-
-    const approveLink = orderData.links.find(l => l.rel === 'approve');
-    if (!approveLink) {
-        throw new Error('PayPal approval link not found.');
-    }
-    return approveLink.href;
-}
-
 app.post('/api/create-checkout-session', bookingRateLimiter, async (req, res) => {
     try {
-        const { tour, customerName, customerEmail, customerPhone, bookingDate, tourTime, guests, guestCategory, gateway, termsAccepted } = req.body;
+        const { tour, customerName, customerEmail, customerPhone, bookingDate, tourTime, guests, guestCategory, termsAccepted } = req.body;
         
         const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'Unknown IP';
 
@@ -222,77 +171,61 @@ app.post('/api/create-checkout-session', bookingRateLimiter, async (req, res) =>
 
         let checkoutUrl = '';
 
-        if (gateway === 'paypal') {
-            const paypalClientId = process.env.PAYPAL_CLIENT_ID;
-            const paypalSecret = process.env.PAYPAL_CLIENT_SECRET;
-            const isSandbox = process.env.PAYPAL_MODE !== 'live';
+        const activeSecretKey = process.env.PAYMONGO_SECRET_KEY;
+        if (!activeSecretKey) {
+            return res.status(500).json({ error: 'PayMongo secret key is not configured.' });
+        }
 
-            if (!paypalClientId || !paypalSecret) {
-                return res.status(500).json({ error: 'PayPal API credentials are not configured on the server.' });
-            }
-
-            try {
-                checkoutUrl = await createPayPalCheckout(amountPHP, itemDescription, successUrl, cancelUrl, paypalClientId, paypalSecret, isSandbox);
-            } catch (ppErr) {
-                return res.status(400).json({ error: ppErr.message || 'PayPal checkout creation failed.' });
-            }
-        } else {
-            const activeSecretKey = process.env.PAYMONGO_SECRET_KEY;
-            if (!activeSecretKey) {
-                return res.status(500).json({ error: 'PayMongo secret key is not configured.' });
-            }
-
-            const authHeader = 'Basic ' + Buffer.from(activeSecretKey + ':').toString('base64');
-            const paymongoPayload = {
-                data: {
-                    attributes: {
-                        billing: {
-                            name: customerName,
-                            email: customerEmail,
-                            phone: formattedPhone
-                        },
-                        line_items: [
-                            {
-                                amount: amountCents,
-                                currency: 'PHP',
-                                name: itemDescription,
-                                quantity: 1
-                            }
-                        ],
-                        payment_method_types: ['card', 'gcash', 'paymaya', 'qrph'],
-                        success_url: successUrl,
-                        cancel_url: cancelUrl,
-                        description: checkoutDescription,
-                        metadata: {
-                            customerName,
-                            customerEmail,
-                            customerPhone: formattedPhone,
-                            bookingDate,
-                            tourTime: tourTime || '04:00 AM',
-                            guests: String(guests),
-                            clientIp: clientIp
+        const authHeader = 'Basic ' + Buffer.from(activeSecretKey + ':').toString('base64');
+        const paymongoPayload = {
+            data: {
+                attributes: {
+                    billing: {
+                        name: customerName,
+                        email: customerEmail,
+                        phone: formattedPhone
+                    },
+                    line_items: [
+                        {
+                            amount: amountCents,
+                            currency: 'PHP',
+                            name: itemDescription,
+                            quantity: 1
                         }
+                    ],
+                    payment_method_types: ['card', 'gcash', 'paymaya', 'qrph'],
+                    success_url: successUrl,
+                    cancel_url: cancelUrl,
+                    description: checkoutDescription,
+                    metadata: {
+                        customerName,
+                        customerEmail,
+                        customerPhone: formattedPhone,
+                        bookingDate,
+                        tourTime: tourTime || '04:00 AM',
+                        guests: String(guests),
+                        clientIp: clientIp
                     }
                 }
-            };
-
-            const response = await fetch('https://api.paymongo.com/v1/checkout_sessions', {
-                method: 'POST',
-                headers: {
-                    accept: 'application/json',
-                    'content-type': 'application/json',
-                    authorization: authHeader
-                },
-                body: JSON.stringify(paymongoPayload)
-            });
-
-            const data = await response.json();
-            if (response.ok && data.data && data.data.attributes && data.data.attributes.checkout_url) {
-                checkoutUrl = data.data.attributes.checkout_url;
-            } else {
-                const errMsg = data.errors && data.errors[0] ? data.errors[0].detail : 'Failed to create PayMongo checkout session.';
-                return res.status(400).json({ error: errMsg });
             }
+        };
+
+        const response = await fetch('https://api.paymongo.com/v1/checkout_sessions', {
+            method: 'POST',
+            headers: {
+                accept: 'application/json',
+                'content-type': 'application/json',
+                authorization: authHeader
+            },
+            body: JSON.stringify(paymongoPayload)
+        });
+
+        const data = await response.json();
+        if (response.ok && data.data && data.data.attributes && data.data.attributes.checkout_url) {
+            checkoutUrl = data.data.attributes.checkout_url;
+        } else {
+            const errMsg = data.errors && data.errors[0] ? data.errors[0].detail : 'Failed to create PayMongo checkout session.';
+            return res.status(400).json({ error: errMsg });
         }
 
         // Send Email Notifications
@@ -315,7 +248,7 @@ app.post('/api/create-checkout-session', bookingRateLimiter, async (req, res) =>
                             <li><strong>Package / Guests:</strong> ${guests}</li>
                             <li><strong>Phone Number:</strong> ${customerPhone}</li>
                             <li><strong>Total Amount:</strong> ₱${amountPHP.toLocaleString()}</li>
-                            <li><strong>Payment Gateway:</strong> ${gateway === 'paypal' ? 'PayPal' : 'PayMongo'}</li>
+                            <li><strong>Payment Gateway:</strong> PayMongo</li>
                         </ul>
                         <p>Please complete your payment through the secure payment link.</p>
                         <p>Warm regards,<br><strong>TAPP Tours Team</strong></p>
@@ -329,7 +262,7 @@ app.post('/api/create-checkout-session', bookingRateLimiter, async (req, res) =>
                 subject: `[New Booking Alert] ${tour} - ${customerName} (IP: ${clientIp})`,
                 html: `
                     <div style="font-family: Arial, sans-serif; padding: 20px; color: #222;">
-                        <h2 style="color: #12B76A;">New Booking Session Created (${gateway === 'paypal' ? 'PayPal' : 'PayMongo'})</h2>
+                        <h2 style="color: #12B76A;">New Booking Session Created (PayMongo)</h2>
                         <ul>
                             <li><strong>Customer Name:</strong> ${customerName}</li>
                             <li><strong>Email:</strong> ${customerEmail}</li>
